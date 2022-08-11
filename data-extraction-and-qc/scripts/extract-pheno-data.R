@@ -13,7 +13,7 @@ library(labelled) # label data
 library(usefunc) # personal package of useful functions
 
 ## args
-# aries_samplesfile <- "data/aries-samples-15up.tsv" # THIS NEEDS TO BE DELETED AFTER ANALYSES ARE COMPLETE
+# aries_samplesfile <- "data/aries-samples-15up.tsv" # THIS NEEDS TO BE DOWNLOADED FROM BC4/BP1 AND DELETED AFTER ANALYSES ARE COMPLETE
 # samplesizes_file <- "data/ad-def-samplesizes.xlsx"
 # outdir <- "data"
 # outfile <- "ad-data.tsv"
@@ -44,12 +44,13 @@ ecz_vars %>%
 
 ## The date at which these variables were ascertained can be found using the ALSPAC data dictionary
 ## 		- Timepoints should be near when DNAm was taken
+##		- Could also do a "teenage eczema" phenotype
 
 ## Based on this, here are some potential variables of interest:
 # ccs5023, I3d: YP has had eczema in the past 12 months - timepoint = 16y 6m
 # cct4055, C19: Respondent ever had eczema - timepoint = 18y
 # tc6110, F11: Study teenager has had eczema - timepoint = 16y 6m
-# ta1030, A2u:  Teenager had eczema in past 12 months - timepoint = 13y 10m
+# ta1030, A2u:  Teenager had eczema in past 12 months - timepoint = 13y 1m
 # tb1060, A4u: Child had eczema in past 12 months - timepoint = 13y 10m 
 # tb1070, A5: Doctor ever diagnosed asthma/eczema - timepoint = 13y 10m
 # tb1122, A9c: Child ever had eczema - timepoint = 13y 10m
@@ -59,10 +60,10 @@ ecz_vars %>%
 # tb2213, B1v: Frequency child used medicine/pills/drops/ointment for eczema in past 12 mo - timepoint = 13y 10m
 
 ## variables to check the sample size of 
-ecz_vars_to_check <- c("ccs5023", "cct4055", "tc6110")
+ecz_vars_to_check <- c("ccs5023", "cct4055", "tc6110", "ta1030", "tb1060", "tb1070", "tb2210")
 
 ecz_timepoints <- tibble(`ALSPAC variable` = ecz_vars_to_check, 
-						 timepoint = c("16y 6m", "18y", "16y 6m"))
+						 timepoint = c("16y 6m", "18y", "16y 6m", "13y 1m", "13y 10m", "13y 10m", "13y 10m"))
 
 # ----------------------------------------------------------------
 # Extract variables and labels
@@ -90,12 +91,55 @@ aries_res <- aries_samples %>%
 aries_res[aries_res < 0] <- NA
 
 ## Replace values with case/control
-aries_res$tc6110 <- ifelse(aries_res$tc6110 == 1, "case", "control")
-aries_res$ccs5023_dr <- ifelse(aries_res$ccs5023 == 2, NA, aries_res$ccs5023)
-aries_res$ccs5023_dr <- ifelse(aries_res$ccs5023_dr == 1, "case", "control")
-aries_res$ccs5023_dr <- ifelse(aries_res$ccs5023 == 2, NA, aries_res$ccs5023_dr)
-aries_res$ccs5023_both <- ifelse(aries_res$ccs5023 == 1 | aries_res$ccs5023 == 2, "case", "control")
-aries_res$cct4055 <- ifelse(aries_res$cct4055 == 1, "case", "control")
+## NOTE: for cases where there is an option for "Yes, but didn't see a doctor"
+# 		 they will be set to missing and not controls when just looking at doctor diagnosis only
+aries_res <- aries_res %>%
+	mutate(ta1030_dr = case_when(ta1030 == 1 ~ "case", 
+								 ta1030 == 3 ~ "control"), 
+		   ta1030_both = case_when(ta1030 == 1 | ta1030 == 2 ~ "case", 
+								   ta1030 == 3 ~ "control"),
+		   tb1060_dr = case_when(tb1060 == 1 ~ "case", 
+		   						 tb1060 == 3 ~ "control"), 
+		   tb1060_both = case_when(tb1060 == 1 | tb1060 == 2 ~ "case", 
+								   tb1060 == 3 ~ "control"),
+		   tb1070 = case_when(tb1070 == 2 | tb1070 == 3 ~ "case", 
+		   					  tb1070 == 1 | tb1070 == 4 ~ "control"), 
+		   tb2210 = case_when(tb2210 == 1 ~ "case", 
+		   					  tb2210 == 0 ~ "control"), 
+		   tc6110 = case_when(tc6110 == 1 ~ "case", 
+		   					  tc6110 == 2 ~ "control"), 
+		   ccs5023_dr = case_when(ccs5023 == 1 ~ "case", 
+		   						  ccs5023 == 3 ~ "control"), 
+		   ccs5023_both = case_when(ccs5023 == 1 | ccs5023 == 2 ~ "case", 
+		   						  	ccs5023 == 3 ~ "control"),
+		   cct4055 = case_when(cct4055 == 1 ~ "case", 
+		   					   cct4055 == 2 ~ "control")
+			) 
+
+aries_res <- aries_res %>%
+	mutate(ad_teen_dr = case_when(ta1030_dr == "case" | tb1060_dr == "case" |
+								  tb1070 == "case" | tb2210 == "case" | 
+								  ccs5023_dr == "case" ~ "case", 
+								  ta1030_dr == "control" | tb1060_dr == "control" |
+								  tb1070 == "control" | tb2210 == "control" | 
+								  ccs5023_dr == "control" ~ "control"), 
+		   ad_late_teen_dr = case_when(ccs5023_dr == "case" ~ "case", 
+								  	   ccs5023_dr == "control" ~ "control"), 
+		   ad_teen_both = case_when(ta1030_both == "case" | tb1060_both == "case" |
+								  	tb1070 == "case" | tb2210 == "case" | 
+								  	ccs5023_both == "case" ~ "case", 
+								  	ta1030_both == "control" | tb1060_both == "control" |
+								  	tb1070 == "control" | tb2210 == "control" | 
+								  	ccs5023_both == "control" ~ "control"),
+		   ad_late_teen_both = case_when(ccs5023_both == "case" ~ "case", 
+								  		 ccs5023_both == "control" ~ "control"), 								  	 
+		   ad_ever = case_when(tc6110 == "case" | cct4055 == "case" ~ "case", 
+		   					   tc6110 == "control" | cct4055 == "control" ~ "control")
+		   )
+
+## NOTE: ad_ever is from mid-late teen questionnaires - could go earlier and up sample size
+
+## ADD IN A COMBINED PHENOTYPE!!
 
 lapply(aries_res[, -c(1:3)], function(x) {table(x)})
 
@@ -103,19 +147,30 @@ lapply(aries_res[, -c(1:3)], function(x) {table(x)})
 ## TAB:
 # | alspac variable | label | notes | timepoint | N | cases | controls |
 
-vars <- c("cct4055", "tc6110", "ccs5023_dr", "ccs5023_both")
+vars <- c("cct4055", "tc6110", "ccs5023_dr", "ccs5023_both", "ta1030_dr",
+		  "ta1030_both", "tb1060_dr", "tb1060_both", "tb1070", "tb2210", 
+		  "ad_teen_dr", "ad_late_teen_dr", "ad_teen_both", "ad_late_teen_both", 
+		  "ad_ever")
 sample_summary <- map_dfr(vars, function(var) {
-	cur_var <- gsub("_.*", "", var)
-	filt_cur <- new_current[new_current$name == cur_var, ]
+	if (grepl("ad_", var)) {
+		lab <- ""
+		tp <- ""
+		cur_var <- var
+	} else {
+		cur_var <- gsub("_.*", "", var)
+		filt_cur <- new_current[new_current$name == cur_var, ]	
+		lab <- filt_cur$lab
+		tp <- ecz_timepoints[ecz_timepoints[["ALSPAC variable"]] == cur_var, "timepoint", drop=T]
+	}
 	case_n <- sum(aries_res[[var]] == "case", na.rm=T)
 	control_n <- sum(aries_res[[var]] == "control", na.rm=T)
 	if (grepl("dr", var)) notes <- "Cases are those that went to a doctor"
 	if (grepl("both", var)) notes <- "Cases include those that did and did not go to a doctor"
-	if (!grepl("both|dr", var)) notes <- NA
+	if (!grepl("both|dr", var)) notes <- ""
 	tibble(`ALSPAC variable` = cur_var, 
-		   label = filt_cur$lab, 
+		   label = lab, 
 		   notes = notes, 
-		   timepoint = ecz_timepoints[ecz_timepoints[["ALSPAC variable"]] == cur_var, "timepoint", drop=T], 
+		   timepoint = tp,
 		   N = case_n + control_n, 
 		   cases = case_n, 
 		   controls = control_n)
@@ -123,10 +178,10 @@ sample_summary <- map_dfr(vars, function(var) {
 
 write.xlsx(sample_summary, file = samplesizes_file)
 
-## Using "ccs5023_both" for now
+## Using "ad_teen_both" for now
 clean_res <- aries_res %>%
-	mutate(ad = case_when(ccs5023_both == "case" ~ 1, 
-							ccs5023_both == "control" ~ 0)) %>%
+	mutate(ad = case_when(ad_teen_both == "case" ~ 1, 
+						  ad_teen_both == "control" ~ 0)) %>%
 	dplyr::select(aln, alnqlet, qlet, ad) %>%
 	na.omit() %>%
 	as_tibble()
