@@ -12,13 +12,6 @@ Analyses will be split into different folders, each with their own scripts and w
 	+ Define AD in ARIES participants and QC pheno + DNAm data
 
 * [ewas](ewas)
-	+ []() : Generate SVs 
-	+ []() : Run the EWAS using ewaff
-	+ []() : Run the EWAS using cell-dmc 
-	+ []() : Run the EWAS using TCA
-	+ []() : Extract all sites that are associated with AD in a cell-type with one method and replicate in the other method
-	+ []() : Run omicWAS with all the replicated sites
-	+ []() : Analyse the results (Manhattans, etc.) + output nice tables 
-	+ []() : Put results into a report
+	+ Run conventional and cell-specific EWAS of AD
 
 EXTRA STUFF!
