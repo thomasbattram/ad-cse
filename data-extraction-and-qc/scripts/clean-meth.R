@@ -1,7 +1,10 @@
+
 # -------------------------------------------------------
 # Filter ARIES betas
 # -------------------------------------------------------
 # Version = v4
+
+# srun --job-name "InteractiveJob" --partition=veryshort --nodes=1 --ntasks-per-node=4 --cpus-per-task=4 --time=6:00:00 --mem=50GB --pty bash
 
 # -------------------------------------------------------
 # Setup
@@ -9,41 +12,65 @@
 
 ## pkgs
 library(tidyverse) # tidy code and data
-library(meffil) # contains 450k features
+# library(meffil) # contains DNAm data annotations - doesn't work on bc4 because Cairo isn't installed... - 
+library(aries) # extract aries data
 library(usefunc) # own package of useful functions
+
+## args
+args <- commandArgs(trailingOnly = TRUE)
+phen_file <- args[1]
+aries_dir <- args[2]
+zhou_file <- args[3]
+outfile_meth <- args[4]
+outfile_samples <- args[5]
+
+## args testers
+# phen_file <- "data/ad-data.tsv"
+# aries_dir <- "/user/work/ms13525/aries"
+# zhou_file <- "data/epic-zhou-list.txt"
+# outfile_meth <- "data/clean-meth.RData" 
+# outfile_samples <- "data/samplenames.txt"
 
 # -------------------------------------------------------
 # Load ARIES data and remove bad samples
 # -------------------------------------------------------
 
-## load aries data
-samplesheet <- new_load(snakemake@input[["samplesheet_file"]])
-samplesheet <- samplesheet %>%
-	dplyr::filter(time_point == snakemake@params[["timepoint"]])
+## load phenotype file
+pheno <- read_tsv(phen_file)
 
-# samples to remove
-sample_rm <- which(samplesheet$duplicate.rm == "Remove" | samplesheet$genotypeQCkids == "ETHNICITY" | 
-				   samplesheet$genotypeQCkids == "HZT;ETHNICITY" | samplesheet$genotypeQCmums == "/strat")
+## load aries data
+aries <- aries.select(aries_dir, time.point = "15up", featureset = "epic")
+
+samplesheet <- aries$samples %>%
+	dplyr::filter(time_point == "15up") %>%
+	left_join(pheno) %>%
+	dplyr::filter(!is.na(ad)) %>%
+	dplyr::select(-ad)
+
+rm(pheno)
+
+# samples to remove - need to find out how to spot sex mismatches...
+sample_rm <- which(samplesheet$duplicate.rm | samplesheet$genotype.mismatch)
 samplesheet <- samplesheet[-sample_rm, ]
 
 # methylation data 
-beta <- new_load(snakemake@input[["aries_meth_dat"]])
+beta <- aries.methylation(aries)
 meth <- beta[, samplesheet$Sample_Name]
 rm(beta)
 
 # detection p values
-detp <- new_load(snakemake@input[["aries_detection_p"]])
+detp <- aries.detectionp(aries)
 pvals <- detp[, samplesheet$Sample_Name]
 rm(detp)
 
-print("finished reading in stuff")
+message("finished reading in aries DNAm data")
 
 # -------------------------------------------------------
 # Remove bad probes
 # -------------------------------------------------------
 
 ## load annotation data
-annotation <- meffil.get.features("450k")
+annotation <- meffil::meffil.get.features("epic")
 
 ## Filter meth data (remove sex chromosomes and SNPs and probes with high detection P-values)
 pvalue_over_0.05 <- pvals > 0.05
@@ -64,17 +91,12 @@ rm(XY, SNPs.and.controls, pvals, count_over_0.05, pvalue_over_0.05, Probes_to_ex
 filtered_vars <- c("detection_p_values", "on_XY", "SNPs/controls")
 
 # COULD ALSO ADD ZHOU LIST HERE! 
+epic_zhou <- usefunc::get_zhou_recs(outpath = zhou_file, array = "epic")
+meth <- meth[!rownames(meth) %in% epic_zhou, ]
 
 # -------------------------------------------------------
-# Filter ARIES betas
+# Filter ARIES samples
 # -------------------------------------------------------
-
-q <- rowQuantiles(meth, probs = c(0.25, 0.75), na.rm = T)
-iqr <- q[, 2] - q[, 1]
-too.hi <- which(meth > q[,2] + 3 * iqr, arr.ind=T)
-too.lo <- which(meth < q[,1] - 3 * iqr, arr.ind=T)
-if (nrow(too.hi) > 0) meth[too.hi] <- NA
-if (nrow(too.lo) > 0) meth[too.lo] <- NA
 
 dim(meth)
 num_na <- apply(meth, 2, function(x){sum(is.na(x))})
@@ -84,5 +106,5 @@ dim(meth)
 
 print(paste0("Number of samples removed = ", length(rem_samp)))
 
-save(meth, file = snakemake@output[[1]])
-
+save(meth, file = outfile_meth)
+writeLines(colnames(meth), con = outfile_samples)
