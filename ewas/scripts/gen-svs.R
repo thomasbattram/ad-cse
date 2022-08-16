@@ -30,7 +30,12 @@ meth <- new_load(meth_file)
 # functions
 # -------------------------------------------------------
 
-# impute function from Matt
+#' Impute missing values in DNAm matrix
+#' 
+#' @param x DNAm matrix
+#' @param FUN function to apply to "x" to get values to impute missing values
+#' 
+#' @return imputed DNAm matrix
 impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
     idx <- which(is.na(x), arr.ind = T)
     if (length(idx) > 0) {
@@ -44,6 +49,16 @@ impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
 # function to add quotes for weird trait names
 addq <- function(x) paste0("`", x, "`")
 
+#' Generate surrogate variables
+#' 
+#' @param trait trait of interest
+#' @param phen_data phenotype data (data.frame or tibble) containing trait of interest and covariates
+#' @param meth_data DNAm matrix
+#' @param covariates character vector of covariates
+#' @param nsv number of surrogate variables to use
+#' @param IID name of the identifier used for DNAm samples. Default = "Sample_Name"
+#' 
+#' @return data.frame of surrogate variable values for each individual
 generate_svs <- function(trait, phen_data, meth_data, covariates = "", nsv, 
 						 IID = "Sample_Name") {
 	print("Starting SV generation")

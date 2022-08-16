@@ -26,7 +26,7 @@ celldmc_res <- new_load(celldmc_file)
 tca_res <- new_load(tca_file)
 
 # ----------------------------------------
-# 
+# Setup
 # ----------------------------------------
 
 str(celldmc_res)
@@ -39,7 +39,8 @@ celltypes <- colnames(celldmc_res$beta)
 #' @param celltype the cell type to combine results for
 #' 
 #' @return tibble of results with the summary statistics and "CpG" as columns 
-comb_res <- function(res, celltype) {
+comb_res <- function(res, celltype) 
+{
 	new_res <- map(res, as_tibble, rownames = "CpG")
 	out <- map_dfc(new_res, celltype) %>%
 		mutate(CpG = new_res$p$CpG) %>%
@@ -49,6 +50,13 @@ comb_res <- function(res, celltype) {
 
 # lapply(celltypes, comb_res, res = tca_res)
 
+#' Extract hits from EWAS res
+#' 
+#' @param res results from the EWAS
+#' @param p_threshold P value threshold to extract associations
+#' @param celltype the cell type to combine results for
+#' 
+#' @return tibble of results with the summary statistics
 extract_hits <- function(res, p_threshold, celltype)
 {
 	tab_res <- comb_res(res, celltype)
@@ -56,12 +64,29 @@ extract_hits <- function(res, p_threshold, celltype)
 		dplyr::filter(p < p_threshold)	
 }
 
+#' Extract CpGs to check for replication from EWAS res
+#' 
+#' @param res results from the EWAS
+#' @param cpgs CpGs of interest
+#' @param celltype the cell type to combine results for
+#' 
+#' @return tibble of results with the summary statistics
 extract_rep <- function(res, cpgs, celltype)
 {
 	tab_res <- comb_res(res, celltype)
 	tab_res %>%
 		dplyr::filter(CpG %in% cpgs)
 }
+
+# ----------------------------------------
+# Extract the hits
+# ----------------------------------------
+
+## Look at replication in both directions, i.e.
+## 1. Extract hits from CellDMC results
+## 2. Check for replication in TCA results
+## 3. Repeat steps reversing the methods
+
 
 disc_method <- c("celldmc", "tca")
 rep_method <- c("tca", "celldmc")
@@ -78,9 +103,11 @@ p_threshold <- 1e-5
 
 all_res <- lapply(1:nrow(res_to_extract), function(x) {
 	temp <- res_to_extract[x, ]
+	## extract hits from discovery res
 	disc_res <- get(paste0(temp$disc, "_res"))
 	disc_hits <- extract_hits(disc_res, p_threshold, temp$celltype)
 	if (nrow(disc_hits) == 0) return(NULL)
+	## Extract hits from replication results and check for replication
 	rep_res <- get(paste0(temp$rep, "_res"))
 	rep_hits <- extract_rep(rep_res, cpgs = disc_hits$CpG, temp$celltype)
 	comb_hits <- disc_hits %>%

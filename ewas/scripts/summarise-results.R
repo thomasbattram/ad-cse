@@ -213,10 +213,6 @@ man_out <- make_man(all_man_res, annotation) +
 
 ggsave(man_outfile, plot = man_out)
 
-# WHAT IS A CELL TYPE?
-
-# Epigenomic and transcriptomic analyses define core cell types, genes and targetable mechanisms for kidney disease
-
 # ---------------------------------------------------------------
 # Summarise results
 # ---------------------------------------------------------------
@@ -302,11 +298,5 @@ all_out$ewaff <- ewaff_res[ewaff_res$CpG %in% sig_hits, ]
 
 summ_out <- list(initial_hits = all_hit_res, all_res = all_out)
 save(summ_out, file = summ_outfile)
-
-
-
-
-
-
 
 

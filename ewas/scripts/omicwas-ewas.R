@@ -37,7 +37,12 @@ trait <- "ad"
 # sort data for running EWAS
 # -------------------------------------------------------
 
-# impute function from Matt
+#' Impute missing values in DNAm matrix
+#' 
+#' @param x DNAm matrix
+#' @param FUN function to apply to "x" to get values to impute missing values
+#' 
+#' @return imputed DNAm matrix
 impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
     idx <- which(is.na(x), arr.ind = T)
     if (length(idx) > 0) {

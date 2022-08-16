@@ -37,7 +37,12 @@ trait <- "ad"
 # sort data for running EWAS
 # -------------------------------------------------------
 
-# impute function from Matt
+#' Impute missing values in DNAm matrix
+#' 
+#' @param x DNAm matrix
+#' @param FUN function to apply to "x" to get values to impute missing values
+#' 
+#' @return imputed DNAm matrix
 impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
     idx <- which(is.na(x), arr.ind = T)
     if (length(idx) > 0) {
@@ -131,41 +136,6 @@ sort_tca <- function(tca_res)
 }
 
  
-# run_omicwas <- function(temp_phen, temp_meth, phen, cc, covs, IID, seed = 2)
-# {
-#     set.seed(seed)
-#     Y <- temp_meth[sample(1:nrow(temp_meth), 1000), ]
-#     # Y <- temp_meth
-#     phen_vals <- temp_phen[[phen]]
-#     if (is.binary(phen_vals)) phen_vals <- ifelse(phen_vals == "yes", 1, 0)
-#     omicwas_phen <- matrix(phen_vals)
-#     colnames(omicwas_phen) <- phen
-#     rownames(omicwas_phen) <- temp_phen[[IID]]
-#     omicwas_covs <- as.matrix(temp_phen[, !colnames(temp_phen) %in% c(phen, IID, "aln")])
-#     rownames(omicwas_covs) <- temp_phen[[IID]]
-#     res <- ctassoc(X = omicwas_phen, W = cc, Y = Y, C = omicwas_covs, 
-#                    test = "nls.logit", regularize = TRUE)
-#     ## Matrix (or vector) of covariates; samples x covariates. X, W, Y, C should benumeric.
-#     out <- res$coefficients %>% dplyr::filter(term == phen)
-#     return(out) 
-# }
-
-# sort_omicwas <- function(omicwas_res)
-# {
-#     cols_to_get <- c("estimate", "p.value")
-#     omicwas_out <- lapply(cols_to_get, function(x) {
-#         out <- omicwas_res %>%
-#             dplyr::select(response, celltype, one_of(x)) %>%
-#             pivot_wider(names_from = celltype, values_from = one_of(x)) %>%
-#             as.data.frame
-#         rownames(out) <- out$response
-#         out <- out[, !colnames(out) == "response"]
-#         return(out)
-#     })
-#     names(omicwas_out) <- c("beta", "p")
-#     return(omicwas_out)
-# }
-
 run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs) 
 {
     # Match meth to Pheno
