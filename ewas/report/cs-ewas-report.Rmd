@@ -1,0 +1,75 @@
+---
+title: Assessing the association cell-specific DNAm and atopic dermatitis 
+author: Thomas Battram
+output:
+  bookdown::html_document2:
+    toc: true
+    theme: united
+params:
+  man: ""
+  qq: ""
+  summ: ""
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+
+## pkgs
+suppressWarnings(suppressPackageStartupMessages({
+library(bookdown) # extra markdown options
+library(knitr) # ...
+library(kableExtra) # extra nice tables
+library(tidyverse) # tidy code and data
+library(ewaff) # For easy EWAS plots
+library(cowplot) # plotting figures on a grid
+library(RColorBrewer) # for plotting colours
+library(usefunc) # own package of useful functions
+}))
+
+knitr::opts_chunk$set(echo = FALSE, 
+           			  warning = FALSE, 
+            		  message = TRUE, 
+            		  cache = FALSE, 
+            		  dpi = 300 
+            		  )
+```
+
+## Introduction
+
+There is little evidence for a strong association between DNAm measured at birth and childhood AD. There have been other papers suggesting there are associations when measuring DNAm at later time points. Previous studies have used bulk tissue, but changes in DNAm may have cell-specific consequences. The most recent AD GWAS found enrichments for hits in DNAse hypersensitive regions amongst B cells, T cells and NK cells, suggesting cell-specific regulation in blood contributes to disease development. Recently, methods have been developed aiming to estimate associations between cell-specific DNAm and traits using DNAm measured in bulk tissue and a reference. We used the methods, CellDMC, TCA, and omicWAS to estimate cell-specific associations between AD and DNAm.
+
+## CellDMC, TCA, and conventional results
+
+```{r cs-qqs, results = "asis", fig.cap = "CellDMC and TCA QQ plots"}
+include_graphics(params$qq)
+```
+
+```{r cs-mans, results = "asis", fig.cap = "CellDMC and TCA manhattan plots"}
+include_graphics(params$man)
+```
+
+NEED TO ADD IN CONVENTIONAL EWAS MANHATTAN HERE!
+
+<!-- ```{r cs-mans, results = "asis", fig.cap = "CellDMC and TCA manhattan plots"}
+include_graphics(params$man)
+``` -->
+
+## Replication using omicWAS
+
+Methods:
+
+1. Run EWAS using CellDMC and TCA
+2. Check to see if associations at FDR<0.05 in CellDMC results replicate in TCA results (FDR < 0.05, where no. of tests = number of sites to check for replication)
+3. Repeat in the opposite direction - i.e. TCA results replication in CellDMC results
+4. Take these hits forward for analyses using omicWAS
+5. Check replication in omicWAS at FDR<0.05
+
+Any that replicate in step "5" are said to be reliable associations. 
+
+For all analyses, DNAm was fitted as the outcome and AD was fitted as the exposure. 
+
+The results of all sites that replicated between the CellDMC and TCA results (step 2-3 of methods), are presented in __Table \@ref(tab:initial-hits)__ along with the omicWAS results for those sites. For all sites that were replicated using omicWAS, the results across all cell types are presented in XXX.
+
+```{r initial-hits}
+kbl(params$summ$initial_hits, caption = "Association between AD and cell-specific DNAm") %>%
+    kable_styling()
+```
