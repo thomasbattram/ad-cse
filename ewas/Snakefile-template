@@ -5,7 +5,6 @@ import os, sys
 ## Directories being used
 LOCAL_DIR = os.getcwd()
 SCR_DIR = "" 
-ARIES_DIR = ""
 
 ## Cell-specific effects methods used here
 METHODS = ["celldmc", "tca", "omicwas"]
@@ -13,8 +12,8 @@ METHODS = ["celldmc", "tca", "omicwas"]
 rule all:
     input:
         SCR_DIR + "/" + "results/ewas/ewaff-res.tsv",
-        expand(SCR_DIR + "/" + "results/ewas/{method}-res.RData", method = METHODS)
-        LOCAL_DIR + "/" + "report/ewas-report.html"
+        expand(SCR_DIR + "/" + "results/ewas/{method}-res.RData", method = METHODS),
+        LOCAL_DIR + "/" + "report/cs-ewas-report.html"
 
 ## Generate SVs that can be used as covariates in the EWAS
 rule gen_svs:
@@ -102,7 +101,7 @@ rule summ_res:
         script = LOCAL_DIR + "/" + "scripts/omicwas-ewas.R",
         celldmc = SCR_DIR + "/" + "results/ewas/celldmc.RData", 
         tca = SCR_DIR + "/" + "results/ewas/tca.RData", 
-        omicwas = SCR_DIR + "/" + "results/ewas/omicwas-res.RData"
+        omicwas = SCR_DIR + "/" + "results/ewas/omicwas-res.RData",
         hits = SCR_DIR + "/" + "results/celldmc-tca-hits.RData",
         ewaff = SCR_DIR + "/" + "results/ewas/ewaff-res.tsv",        
     output:
@@ -125,7 +124,7 @@ rule cse_report:
     input:
         man = SCR_DIR + "/" + "results/celldmc-tca-manhattans.png",
         qq = SCR_DIR + "/" + "results/celldmc-tca-qqs.png",
-        summ = SCR_DIR + "/" + "results/summary-of-results.RData"
+        summ = SCR_DIR + "/" + "results/summary-of-results.RData",
         report = LOCAL_DIR + "/" + "report/cs-ewas-report.Rmd"
     output:
         LOCAL_DIR + "/" + "report/cs-ewas-report.html"
