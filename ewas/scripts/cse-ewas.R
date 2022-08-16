@@ -21,7 +21,7 @@ out_files <- args[4]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "../data-extraction-and-qc/data/svs/ad-svs.tsv"
+# svs_file <- "data/svs/ad-svs.tsv"
 # out_files <- "results/ewas/celldmc-res.RData results/ewas/tca-res.RData"
 
 out_files <- unlist(str_split(out_files, " "))

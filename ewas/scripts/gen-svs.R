@@ -20,7 +20,7 @@ removed_out_file <- args[4]
 # phen_file <- "data/ad-data-cleaned.tsv"
 # meth_file <- "data/clean-meth.RData"
 # out_file <- "data/svs/ad-svs.tsv"
-# removed_out_file <- "data/svs/ad-removed-svs.txt"
+# removed_out_file <- "data/svs/ad-removed-svs.RData"
 
 ## read in data
 phen_dat <- read_tsv(phen_file)

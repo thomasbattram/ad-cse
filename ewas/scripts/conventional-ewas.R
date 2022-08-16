@@ -15,7 +15,7 @@ out_file <- args[4]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "../data-extraction-and-qc/data/svs/ad-svs.tsv"
+# svs_file <- "data/svs/ad-svs.tsv"
 # out_file <- "results/ewas/ewaff-res.tsv"
 
 ## read in data

@@ -33,6 +33,12 @@ str(celldmc_res)
 str(tca_res)
 
 celltypes <- colnames(celldmc_res$beta)
+#' Combine the summary statistics from each cell type
+#' 
+#' @param res results from the EWAS
+#' @param celltype the cell type to combine results for
+#' 
+#' @return tibble of results with the summary statistics and "CpG" as columns 
 comb_res <- function(res, celltype) {
 	new_res <- map(res, as_tibble, rownames = "CpG")
 	out <- map_dfc(new_res, celltype) %>%
