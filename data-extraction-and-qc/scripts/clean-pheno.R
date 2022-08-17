@@ -43,6 +43,6 @@ pheno <- phen %>%
 	left_join(samplesheet) %>%
 	left_join(cell_counts) %>%
 	dplyr::filter(!is.na(Sample_Name)) %>%
-	dplyr::select(Sample_Name, aln, alnqlet, qlet, ad, all_of(colnames(cell_counts)))
+	dplyr::select(Sample_Name, aln, alnqlet, qlet, ad, age, sex, all_of(colnames(cell_counts)))
 
 write.table(pheno, file = phen_outfile, quote = F, col.names = T, row.names = F, sep = "\t")

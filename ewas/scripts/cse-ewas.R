@@ -59,7 +59,8 @@ cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO M
 cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
 rownames(cell_counts) <- pheno_dat$Sample_Name
 
-covs <- c(grep("sv", colnames(svs), value = T)) ## ADD MORE TO ME PLEASE
+covs <- c(grep("sv", colnames(svs), value = T), 
+          colnames(pheno_dat)[!colnames(pheno_dat) %in% c("aln", "alnqlet", "qlet", "Sample_Name", trait, cell_types)])
 phen_dat <- pheno_dat %>%
     left_join(svs) %>%
     dplyr::select(Sample_Name, aln, all_of(c(trait, covs))) %>%

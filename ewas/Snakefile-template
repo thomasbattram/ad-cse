@@ -11,7 +11,7 @@ METHODS = ["celldmc", "tca", "omicwas"]
 
 rule all:
     input:
-        SCR_DIR + "/" + "results/ewas/ewaff-res.tsv",
+        expand(SCR_DIR + "/" + "results/ewas/ewaff-res-{model}.tsv", model = ["cc", "no-cc"]),
         expand(SCR_DIR + "/" + "results/ewas/{method}-res.RData", method = METHODS),
         LOCAL_DIR + "/" + "report/cs-ewas-report.html"
 
@@ -39,7 +39,7 @@ rule conv_ewas:
         meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
         svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
     output: 
-        SCR_DIR + "/" + "results/ewas/ewaff-res.tsv"
+        SCR_DIR + "/" + "results/ewas/ewaff-res-{model}.tsv"
     shell:
         """echo $HOSTNAME; Rscript {input.script} \
                                         '{input.phen}' \

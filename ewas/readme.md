@@ -13,7 +13,7 @@ The scripts can be executed manually or via snakemake. Here is the snakemake wor
 4. Submit pipeline as a job:
 
 ``` bash
-snakemake -p \
+snakemake -rp \
 -j 1 \
 --cluster-config bc4-cluster.json \
 --cluster "sbatch \

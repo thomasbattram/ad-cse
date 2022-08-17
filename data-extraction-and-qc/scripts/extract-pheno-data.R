@@ -118,23 +118,19 @@ aries_res <- aries_res %>%
 
 aries_res <- aries_res %>%
 	mutate(ad_teen_dr = case_when(ta1030_dr == "case" | tb1060_dr == "case" |
-								  tb1070 == "case" | tb2210 == "case" | 
 								  ccs5023_dr == "case" ~ "case", 
 								  ta1030_dr == "control" | tb1060_dr == "control" |
-								  tb1070 == "control" | tb2210 == "control" | 
 								  ccs5023_dr == "control" ~ "control"), 
 		   ad_late_teen_dr = case_when(ccs5023_dr == "case" ~ "case", 
 								  	   ccs5023_dr == "control" ~ "control"), 
 		   ad_teen_both = case_when(ta1030_both == "case" | tb1060_both == "case" |
-								  	tb1070 == "case" | tb2210 == "case" | 
 								  	ccs5023_both == "case" ~ "case", 
 								  	ta1030_both == "control" | tb1060_both == "control" |
-								  	tb1070 == "control" | tb2210 == "control" | 
 								  	ccs5023_both == "control" ~ "control"),
 		   ad_late_teen_both = case_when(ccs5023_both == "case" ~ "case", 
 								  		 ccs5023_both == "control" ~ "control"), 								  	 
-		   ad_ever = case_when(tc6110 == "case" | cct4055 == "case" ~ "case", 
-		   					   tc6110 == "control" | cct4055 == "control" ~ "control")
+		   ad_ever = case_when(tb1070 == "case" | tc6110 == "case" | cct4055 == "case" ~ "case", 
+		   					   tb1070 == "control" | tc6110 == "control" | cct4055 == "control" ~ "control")
 		   )
 
 ## NOTE: ad_ever is from mid-late teen questionnaires - could go earlier and up sample size
@@ -178,6 +174,13 @@ sample_summary <- map_dfr(vars, function(var) {
 
 write.xlsx(sample_summary, file = samplesizes_file)
 
+# ----------------------------------------------------------------
+# Extract and test covariate data
+# ----------------------------------------------------------------
+
+## Covariates of interest: BMI, age, sex (can get age and sex from the ARIES samplesheet)
+covs <- c("fh3019")
+
 ## Using "ad_teen_both" for now
 clean_res <- aries_res %>%
 	mutate(ad = case_when(ad_teen_both == "case" ~ 1, 
@@ -185,6 +188,29 @@ clean_res <- aries_res %>%
 	dplyr::select(aln, alnqlet, qlet, ad) %>%
 	na.omit() %>%
 	as_tibble()
+
+cov_res <- extractVars(current[current$name %in% covs, ])
+cov_labs <- usefunc::extract_alspac_labels(current[current$name %in% covs, ], alsp_dir = alspac_data_dir)
+
+## Combine and set negative values to missing
+comb_res <- clean_res %>%
+	left_join(cov_res) %>%
+	dplyr::select(all_of(c(colnames(clean_res), covs)))
+
+comb_res[comb_res < 0] <- NA
+
+lapply(covs, function(cov) {
+	form <- as.formula(paste0("ad ~ ", cov))
+	glm_res <- glm(form, data = comb_res, family = "binomial")
+	summarise_glm(glm_res, "ad", cov)$summary_data
+})
+
+# Small association between BMI and AD
+##   outcome   estimate         se          p      CI_low     CI_up
+## 1      ad 0.04308613 0.01935063 0.02597394 0.004689585 0.0806861
+
+## BUT because of the missingness of BMI, using it would mean 56 fewer cases...
+## THEREFORE, not using it for now
 
 # ----------------------------------------------------------------
 # Write the data out

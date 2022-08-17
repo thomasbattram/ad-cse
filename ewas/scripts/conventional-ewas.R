@@ -16,7 +16,9 @@ out_file <- args[4]
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
 # svs_file <- "data/svs/ad-svs.tsv"
-# out_file <- "results/ewas/ewaff-res.tsv"
+# out_file <- "results/ewas/ewaff-res-no-cc.tsv"
+
+model <- ifelse(grepl("no-cc", out_file), "no_cc", "cc")
 
 ## read in data
 phen_dat <- read_tsv(phen_file)
@@ -92,6 +94,11 @@ run_ewas <- function(phen, pheno_dat, svs_file, meth_dat, IID, out_file, covs)
 phen <- "ad"
 covariates <- colnames(phen_dat)[!colnames(phen_dat) %in% c("Sample_Name", "aln", "qlet", "alnqlet", phen)]
 covariates <- c(covariates, paste0("sv", 1:10))
+
+if (model == "no_cc") {
+    cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO ME 
+    covariates <- covariates[!covariates %in% cell_types]
+}
 
 run_ewas(phen = phen, 
 		 pheno_dat = phen_dat, 
