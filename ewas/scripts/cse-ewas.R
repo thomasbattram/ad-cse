@@ -72,6 +72,9 @@ stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
 
 meth <- meth[, phen_dat$Sample_Name]
 
+## Make sex a 1/2 phenotype F=1, M=2
+phen_dat$sex <- ifelse(phen_dat$sex == "F", 1, 2)
+
 ## Negative values are soooo close to zero, and values need to be 0-1 for some methods
 cell_counts[sign(cell_counts) == -1] <- 0
 
@@ -144,7 +147,7 @@ run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs)
 {
     # Match meth to Pheno
     temp_meth <- meth_dat[, colnames(meth_dat) %in% p_dat[[IID]]]
-    temp_meth <- meth_dat[, na.omit(match(p_dat[[IID]], colnames(meth_dat)))]
+    temp_meth <- temp_meth[, na.omit(match(p_dat[[IID]], colnames(temp_meth)))]
     temp_phen <- p_dat[match(colnames(temp_meth), p_dat[[IID]]), ]
     temp_cc <- cc[rownames(cc) %in% temp_phen$Sample_Name, ]
     
