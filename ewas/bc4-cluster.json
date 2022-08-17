@@ -22,6 +22,7 @@
 		"partition": "cpu",
 		"ncpu": "4",
 		"ntask": "4",
+        "mem": "70G",
 		"time": "50:00:00"
 	},
 

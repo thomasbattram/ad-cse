@@ -25,7 +25,7 @@ snakemake -p \
         --time={cluster.time} \
         --mem={cluster.mem} \
         --output={cluster.output} \
-        --error={cluster.output}"
+        --error={cluster.error}"
 ```
 
 5. Deactivate the tmux session (CTRL+b + d)

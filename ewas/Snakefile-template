@@ -57,7 +57,7 @@ rule cs_ewas:
     output: 
         expand(SCR_DIR + "/" + "results/ewas/{method}-res.RData", method = ["celldmc", "tca"])
     shell:
-        """echo $HOSTNAME; bash {input.script} \
+        """echo $HOSTNAME; Rscript {input.script} \
                                         '{input.phen}' \
                                         '{input.meth}' \
                                         '{input.svs}' \
