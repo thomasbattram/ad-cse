@@ -67,7 +67,10 @@ phen_dat <- pheno_dat %>%
     dplyr::filter(!is.na(Sample_Name)) %>%
     na.omit(.)
 
+cell_counts <- cell_counts[rownames(cell_counts) %in% phen_dat$Sample_Name, ]
 stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
+
+meth <- meth[, phen_dat$Sample_Name]
 
 ## Negative values are soooo close to zero, and values need to be 0-1 for some methods
 cell_counts[sign(cell_counts) == -1] <- 0
