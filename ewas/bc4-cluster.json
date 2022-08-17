@@ -20,9 +20,10 @@
 	"cs_ewas" :
 	{
 		"partition": "cpu",
+        "nodes": "4",
 		"ncpu": "4",
 		"ntask": "4",
-        "mem": "70G",
+        "mem": "80G",
 		"time": "50:00:00"
 	},
 
