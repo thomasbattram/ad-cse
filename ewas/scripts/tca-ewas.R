@@ -19,6 +19,8 @@ svs_file <- args[3]
 out_files <- args[4]
 max_chunks <- as.numeric(args[5])
 
+print(args)
+
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
 # svs_file <- "data/svs/ad-svs.tsv"
