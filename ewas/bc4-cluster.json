@@ -17,14 +17,26 @@
 		"time": "2:00:00"
 	},
 
-	"cs_ewas" :
+	"celldmc" :
 	{
-		"partition": "cpu",
-        "nodes": "4",
-		"ncpu": "4",
-		"ntask": "4",
-        "mem": "80G",
-		"time": "50:00:00"
+        "nodes": "1",
+		"ncpu": "2",
+		"ntask": "2",
+		"time": "6:00:00"
+	},
+
+	"tca" :
+	{
+        "partition": "cpu",
+        "nodes": "1",
+		"ncpu": "2",
+		"ntask": "2",
+		"time": "20:00:00"
+	},
+
+	"tca_comb" :
+	{
+		"mem": "32G"
 	},
 
 	"extract_hits" :
