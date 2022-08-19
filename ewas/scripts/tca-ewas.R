@@ -9,19 +9,23 @@
 ## pkgs
 library(tidyverse) # tidy code and data
 library(matrixStats) # for imputing matrix
-library(EpiDISH) # celldmc
+library(TCA) # TCA
 library(usefunc) # own package of useful functions
 
 args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
 svs_file <- args[3]
-out_files <- args[4]
+out_file <- args[4]
+max_chunks <- args[5]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
 # svs_file <- "data/svs/ad-svs.tsv"
-# out_file <- "results/ewas/celldmc-res.RData"
+# out_files <- "results/ewas/tca-temp/tca-res-1.RData results/ewas/tca-temp/tca-res-2.RData"
+# max_chunks <- 100
+
+out_files <- unlist(str_split(out_files, " "))
 
 ## read in data
 pheno_dat <- read_tsv(phen_file)
@@ -92,28 +96,31 @@ rownames(cell_counts) <- rownam
 # EWAS functions
 # ----------------------------------------
 
-run_celldmc <- function(temp_phen, temp_meth, phen, cc, covs, IID)
+run_tca <- function(temp_phen, temp_meth, phen, cc, covs, IID)
 {
-    cov_form <- as.formula(paste0("~ ", paste(covs, collapse = " + ")))
-    cov_mat <- model.matrix(cov_form, data = temp_phen)
-    out <- CellDMC(beta.m = temp_meth, pheno.v = temp_phen[[phen]], frac.m = cc, cov.mod = cov_mat)
+    phen_vals <- temp_phen[[phen]]
+    tca_phen <- matrix(phen_vals)
+    colnames(tca_phen) <- phen
+    rownames(tca_phen) <- temp_phen[[IID]]
+    tca_covs <- as.matrix(temp_phen[, !colnames(temp_phen) %in% c(phen, IID, "aln")])
+    rownames(tca_covs) <- temp_phen[[IID]]
+    out <- tca(X = temp_meth, C1 = tca_phen, W = cc, C2 = tca_covs)
     return(out)
 }
 
-sort_celldmc <- function(celldmc_res) 
+sort_tca <- function(tca_res) 
 {
-    celldmc_coefs <- celldmc_res$coe
-    cols_to_get <- c("Estimate", "SE", "p")
-    celldmc_out <- lapply(cols_to_get, function(x) {
-        out <- map_dfr(celldmc_coefs, x) %>%
-            as.data.frame
-        rownames(out) <- rownames(celldmc_coefs[[1]])
-        return(out)
+    tca_beta <- tca_res$gammas_hat
+    tca_p <- tca_res$gammas_hat_pvals
+    tca_out <- list(beta = tca_beta[, grep(trait, colnames(tca_beta))], 
+                      p = tca_p[, grep(trait, colnames(tca_p))])
+    tca_out <- lapply(tca_out, function(x) {
+        colnames(x) <- gsub("\\..*", "", colnames(x))
+        return(x)
     })
-    names(celldmc_out) <- c("beta", "se", "p")
-    return(celldmc_out)
+    return(tca_out)
 }
- 
+
 run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs) 
 {
     # Match meth to Pheno
@@ -130,7 +137,6 @@ run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs)
 
     function_name <- paste0("run_", method)
     ewas_func <- match.fun(function_name)
-    # p_to_keep <- p_to_keep[1]
     message("EWAS TIME")
     res <- tryCatch({
         ewas_func(temp_phen, meth_dat, phen, temp_cc, covs, IID)
@@ -145,24 +151,38 @@ run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs)
 # Run the EWAS
 # ----------------------------------------
 
-method <- "celldmc"
-message("Running analyses using ", method)
-ewas_res <- run_ewas(phen = trait, 
-                     p_dat = phen_dat, 
-                     cc = cell_counts, 
-                     meth_dat = meth,
-                     IID = "Sample_Name", 
-                     method = method, 
-                     covs = covs)
-if (is.character(ewas_res)) {
-    stop("EWAS of AD using ", method, " failed to run.")
-}
-message("Finished analyses using ", method)
-sort_function_name <- paste0("sort_", method)
-sort_func <- match.fun(sort_function_name)
-out_res <- sort_func(ewas_res)
-message("Saving sorted results to ", out_file)
-save(out_res, file = out_file)
-rm(list = c("out_res", "ewas_res"))
+## test
+# meth <- meth[1:10000,]
+
+## subset meth matrix 
+chunk_lengths <- round(seq(1, nrow(meth), length = max_chunks+1))
+if (!nrow(meth) %in% chunk_lengths) stop("Not going across all CpG sites")
+
+method <- "tca"
+# out_file <- out_files[1]
+lapply(out_files, function(out_file) {
+    chunk <- as.numeric(str_extract(out_file, "[0-9][0-9]*"))
+    meth_dat <- meth[chunk_lengths[chunk]:chunk_lengths[chunk+1], ]
+    message("Running TCA analyses using chunk: ", chunk)
+    ewas_res <- run_ewas(phen = trait, 
+                         p_dat = phen_dat, 
+                         cc = cell_counts, 
+                         meth_dat = meth_dat,
+                         IID = "Sample_Name", 
+                         method = method, 
+                         covs = covs)
+    if (is.character(ewas_res)) {
+        stop("EWAS of AD using ", method, " failed to run.")
+    }
+    message("Finished analyses using ", method)
+    sort_function_name <- paste0("sort_", method)
+    sort_func <- match.fun(sort_function_name)
+    out_res <- sort_func(ewas_res)
+    message("Saving sorted results to ", out_file)
+    save(out_res, file = out_file)
+    rm(list = c("out_res", "ewas_res"))    
+})
 
 print("FIN")
+
+
