@@ -6,6 +6,8 @@ import os, sys
 LOCAL_DIR = os.getcwd()
 SCR_DIR = "" 
 
+CHUNKS = list(range(1, 101))
+
 ## Cell-specific effects methods used here
 METHODS = ["celldmc", "tca", "omicwas"]
 
@@ -48,20 +50,51 @@ rule conv_ewas:
                                         '{output}' """   
 
 ## Run the cell-specific EWAS
-rule cs_ewas:
+rule celldmc:
     input:
-        script = LOCAL_DIR + "/" + "scripts/cse-ewas.R", 
+        script = LOCAL_DIR + "/" + "scripts/celldmc-ewas.R", 
         phen = SCR_DIR + "/" + "../data-extraction-and-qc/data/ad-data-cleaned.tsv",
         meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
         svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
     output: 
-        expand(SCR_DIR + "/" + "results/ewas/{method}-res.RData", method = ["celldmc", "tca"])
+        SCR_DIR + "/" + "results/ewas/celldmc-res.RData"
     shell:
         """echo $HOSTNAME; Rscript {input.script} \
                                         '{input.phen}' \
                                         '{input.meth}' \
                                         '{input.svs}' \
                                         '{output}' """   
+
+## Run the TCA analyses
+rule tca:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/tca-ewas.R", 
+        phen = SCR_DIR + "/" + "../data-extraction-and-qc/data/ad-data-cleaned.tsv",
+        meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
+        svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
+    output: 
+        expand(SCR_DIR + "/" + "results/ewas/tca-temp/tca-res-{chunk}.RData", chunk = CHUNKS)
+    params:
+        max_chunks = len(CHUNKS)
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{output}' \
+                                        '{params.max_chunks} '"""   
+
+## Combine TCA results into one file
+rule tca_comb:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/combine-tca-res.R", 
+        tca = expand(SCR_DIR + "/" + "results/ewas/tca-temp/tca-res-{chunk}.RData", chunk = CHUNKS),
+    output: 
+        SCR_DIR + "/" + "results/ewas/tca.RData"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.tca}' \
+                                        '{output}' '"""  
 
 ## Extract hits from the cell-specific EWAS
 rule extract_hits:
