@@ -16,7 +16,7 @@ args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
 svs_file <- args[3]
-out_files <- args[4]
+out_file <- args[4]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
