@@ -21,7 +21,7 @@ out_files <- args[5]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "../data-extraction-and-qc/data/svs/ad-svs.tsv"
+# svs_file <- "data/svs/ad-svs.tsv"
 # hits_file <- "results/celldmc-tca-hits.RData"
 # out_file <- "results/ewas/omicwas-res.RData"
 
@@ -71,6 +71,7 @@ phen_dat <- pheno_dat %>%
     dplyr::filter(!is.na(Sample_Name)) %>%
     na.omit(.)
 
+cell_counts <- cell_counts[rownames(cell_counts) %in% phen_dat$Sample_Name, ]
 stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
 
 ## Negative values are soooo close to zero, and values need to be 0-1 for some methods

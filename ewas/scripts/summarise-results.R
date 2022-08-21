@@ -17,17 +17,19 @@ celldmc_file <- args[1]
 tca_file <- args[2]
 omicwas_file <- args[3]
 celldmc_tca_hits_file <- args[4]
-ewaff_file <- args[5]
-man_outfile <- args[6]
-qq_outfile <- args[7]
-summ_outfile <- args[8]
+ewaff_cc_file <- args[5]
+ewaff_no_cc_file <- args[6]
+man_outfile <- args[7]
+qq_outfile <- args[8]
+summ_outfile <- args[9]
 
 ## args tests
 # celldmc_file <- "results/ewas/celldmc-res.RData"
 # tca_file <- "results/ewas/tca-res.RData"
 # omicwas_file <- "results/ewas/omicwas-res.RData"
 # celldmc_tca_hits_file <- "results/celldmc-tca-hits.RData"
-# ewaff_file <- "results/ewas/ewaff-res.tsv"
+# ewaff_cc_file <- "results/ewas/ewaff-res-cc.tsv"
+# ewaff_no_cc_file <- "results/ewas/ewaff-res-no-cc.tsv"
 # man_outfile <- "results/celldmc-tca-manhattans.png"
 # qq_outfile <- "results/celldmc-tca-qqs.png"
 # summ_outfile <- "results/summary-of-results.RData"
@@ -39,7 +41,8 @@ omicwas <- new_load(omicwas_file)
 hits <- new_load(celldmc_tca_hits_file)
 hits_note <- hits$note
 hits <- hits$res
-ewaff_res <- read_tsv(ewaff_file)
+ewaff_cc_res <- read_tsv(ewaff_cc_file)
+ewaff_no_cc_res <- read_tsv(ewaff_no_cc_file)
 
 # ---------------------------------------------------------------
 # Functions for setup of data and qq plots etc.
@@ -89,7 +92,8 @@ make_man <- function(res, cpg_annotations)
     res <- res %>%
         left_join(cpg_annotations)
     # to highlight
-    cpg_h <- res[res$p < 1e-7, ]$name
+    # cpg_h <- res[res$p < 1e-7, ]$name
+    cpg_h <- ""
     gg_man <- gg.manhattan(df = res, 
                            hlight = cpg_h, 
                            title = NULL, 
@@ -99,7 +103,7 @@ make_man <- function(res, cpg_annotations)
                            P = "p", 
                            sig = 1e-7, 
                            sugg = 1e-5, 
-                           lab = TRUE, 
+                           lab = FALSE, 
                            colour = TRUE)
     gg_man <- gg_man + 
         theme(plot.title = element_blank(), text = element_text(size = 10),
@@ -209,7 +213,7 @@ all_man_res <- celldmc_res %>%
 	bind_rows(tca_man_res)
 
 man_out <- make_man(all_man_res, annotation) + 
-	facet_grid(celltype ~ method)
+	facet_grid(celltype ~ method, scales="free")
 
 ggsave(man_outfile, plot = man_out)
 
@@ -264,7 +268,9 @@ sig_hits <- unlist(sig_hits)
 ## FOR TESTING
 # sig_hits <- "cg05173528"
 
-ewaff_res <- ewaff_res %>%
+ewaff_cc_res <- ewaff_cc_res %>%
+	dplyr::select(CpG = probeID, Beta = BETA, SE = SE, P)
+ewaff_no_cc_res <- ewaff_no_cc_res %>%
 	dplyr::select(CpG = probeID, Beta = BETA, SE = SE, P)
 
 methods <- c("celldmc", "tca", "omicwas")
@@ -281,7 +287,8 @@ all_out <- lapply(methods, function(method) {
 })
 names(all_out) <- methods
 
-all_out$ewaff <- ewaff_res[ewaff_res$CpG %in% sig_hits, ]
+all_out$ewaff_cc <- ewaff_cc_res[ewaff_cc_res$CpG %in% sig_hits, ]
+all_out$ewaff_no_cc <- ewaff_no_cc_res[ewaff_no_cc_res$CpG %in% sig_hits, ]
 
 ## TO DO!!! - maybe think about best way when actually have some results...
 

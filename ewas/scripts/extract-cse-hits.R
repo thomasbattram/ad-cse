@@ -98,7 +98,7 @@ res_to_extract <- expand.grid(disc = disc_method,
 res_to_extract <- res_to_extract %>%
 	dplyr::filter(disc != rep)
 
-n_tests <- nrow(res_to_extract)
+n_celltypes <- length(celltypes)
 p_threshold <- 1e-5
 
 all_res <- lapply(1:nrow(res_to_extract), function(x) {
@@ -112,7 +112,7 @@ all_res <- lapply(1:nrow(res_to_extract), function(x) {
 	rep_hits <- extract_rep(rep_res, cpgs = disc_hits$CpG, temp$celltype)
 	comb_hits <- disc_hits %>%
 		left_join(rep_hits, by = c("CpG"), suffix = c("_disc", "_rep")) %>%
-		mutate(p_rep_fdr = p.adjust(p_rep, n = n_tests, method = "fdr")) %>%
+		mutate(p_rep_fdr = p.adjust(p_rep, n = n_celltypes * nrow(disc_hits), method = "fdr")) %>%
 		mutate(replicated = ifelse(p_rep_fdr < 0.05 & sign(beta_disc) == sign(beta_rep), TRUE, FALSE))
 	return(comb_hits)
 })
