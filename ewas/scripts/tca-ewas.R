@@ -28,6 +28,7 @@ print(args)
 # max_chunks <- 100
 
 out_files <- unlist(str_split(out_files, " "))
+# out_files <- paste0("results/ewas/tca-temp/tca-res-", 1:100, ".RData")
 
 ## read in data
 pheno_dat <- read_tsv(phen_file)

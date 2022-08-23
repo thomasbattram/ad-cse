@@ -189,7 +189,7 @@ qq_p <- ggplot(all_qq_res, aes(x = expected, y = observed)) +
 	geom_abline(intercept = 0, slope = 1, colour = "black") + 
 	geom_point() + 
 	theme_bw() + 
-    facet_grid(celltype ~ method) + 
+    facet_grid(celltype ~ method, scales = "free") + 
     geom_text(data = dat_text, mapping = aes(x = -Inf, y = Inf, label = label), hjust = 0, vjust = 1, parse = TRUE)
 
 ggsave(qq_outfile, plot = qq_p)
@@ -231,10 +231,13 @@ ggsave(man_outfile, plot = man_out)
 omicwas_res <- lapply(celltypes, comb_res, res = omicwas)
 names(omicwas_res) <- celltypes
 
+p_thresh <- 1e-7 / length(celltypes)
+
 all_hit_res <- lapply(1:length(hits), function(x) {
 	res <- hits[[x]]
 	res_nam <- names(hits)[x]
-	res <- res[res$replicated, ]
+	res <- res %>%
+		dplyr::filter(replicated, p_disc < p_thresh)
 	if (nrow(res) == 0) return(NULL)
 	celltype <- unlist(str_split(res_nam, "_"))[3]
 	tca_filt_res <- tca_res[[celltype]] %>%
@@ -256,10 +259,12 @@ all_hit_res <- bind_rows(all_hit_res) %>%
 	arrange(`Cell type`, CpG) %>%
 	distinct()
 
+uniq_cpgs <- unique(all_hit_res$CpG)
+omicwas_p_thresh <- 0.05 / length(uniq_cpgs)
 sig_hits <- lapply(celltypes, function(ct) {
 	all_hit_res %>%
 		dplyr::filter(`Cell type` == ct) %>%
-		dplyr::filter(Method == "omicWAS", P < 0.05) %>%
+		dplyr::filter(Method == "omicWAS", P < omicwas_p_thresh) %>%
 		pull(CpG)
 })
 names(sig_hits) <- celltypes
@@ -305,5 +310,52 @@ all_out$ewaff_no_cc <- ewaff_no_cc_res[ewaff_no_cc_res$CpG %in% sig_hits, ]
 
 summ_out <- list(initial_hits = all_hit_res, all_res = all_out)
 save(summ_out, file = summ_outfile)
+
+## low omicwas p
+# omic_rep_cpgs <- all_hit_res %>%
+# 	dplyr::filter(Method == "omicWAS") %>%
+# 	dplyr::filter(P < omicwas_p_thresh) %>%
+# 	pull("CpG")
+
+# good_res <- all_hit_res %>%
+# 	dplyr::filter(CpG %in% omic_rep_cpgs)
+
+# ewaff_no_cc_res %>%
+# 	arrange(P)
+
+# ewaff_cc_res %>%
+# 	arrange(P)
+
+# ewaff_cc_res %>%
+# 	dplyr::filter(CpG %in% good_res$CpG) %>%
+# 	arrange(P)
+
+# ewaff_no_cc_res %>%
+# 	dplyr::filter(CpG %in% good_res$CpG) %>%
+# 	arrange(P)
+
+# ## Discovery: P = 1.42e-8 (1e-7 / 7)
+# ## Replication: P = 0.05 / N hits AND beta in same direction
+# ## X associations in CellDMC that replicated in TCA
+# ## X associations in TCA that replicated in CellDMC
+# ## X of these associations replicated in omicWAS
+# ## X of these were identified in the conventional EWAS
+
+# example <- map_dfr(all_out, function(dat) {
+# 	dat %>%
+# 		dplyr::filter(CpG == "cg03798742")
+# }, .id = "method")
+
+# write.table(example, "results/example.tsv", sep = "\t", quote= F, row.names=F, col.names = T)
+
+# good_res %>% 
+# 	dplyr::filter(`Cell type` == "CD8T") %>%
+# 	pull(CpG) %>%
+# 	unique() -> cd8t_cpgs
+
+# writeLines(cd8t_cpgs, con = "results/cd8t_cpgs.txt")
+
+## X of the conventional EWAS associations were identified in the cell-specific associations
+
 
 
