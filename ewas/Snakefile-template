@@ -132,7 +132,7 @@ rule omicwas:
 ## Summarise the results
 rule summ_res:
     input:
-        script = LOCAL_DIR + "/" + "scripts/omicwas-ewas.R",
+        script = LOCAL_DIR + "/" + "scripts/summarise-results.R",
         celldmc = SCR_DIR + "/" + "results/ewas/celldmc-res.RData", 
         tca = SCR_DIR + "/" + "results/ewas/tca-res.RData", 
         omicwas = SCR_DIR + "/" + "results/ewas/omicwas-res.RData",
