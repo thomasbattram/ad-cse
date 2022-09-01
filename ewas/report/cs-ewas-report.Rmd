@@ -9,6 +9,7 @@ params:
   man: ""
   qq: ""
   summ: ""
+  workflow: ""
 ---
 
 ```{r setup, message=FALSE, warning=FALSE, include=FALSE}
@@ -31,13 +32,65 @@ knitr::opts_chunk$set(echo = FALSE,
             		  cache = FALSE, 
             		  dpi = 300 
             		  )
+
+## params tester
+# params <- list(man = "results/celldmc-tca-manhattans.png", qq = "results/celldmc-tca-qqs.png", summ = "results/summary-of-results.RData", workflow = "~/projects/ad-cse/ewas/report/cell-spec-workflow.drawio.pdf")
+
+# load summ data
+summ <- new_load(params$summ)
+
 ```
 
 ## Introduction
 
-There is little evidence for a strong association between DNAm measured at birth and childhood AD. There have been other papers suggesting there are associations when measuring DNAm at later time points. Previous studies have used bulk tissue, but changes in DNAm may have cell-specific consequences. The most recent AD GWAS found enrichments for hits in DNAse hypersensitive regions amongst B cells, T cells and NK cells, suggesting cell-specific regulation in blood contributes to disease development. Recently, methods have been developed aiming to estimate associations between cell-specific DNAm and traits using DNAm measured in bulk tissue and a reference. We used the methods, CellDMC, TCA, and omicWAS to estimate cell-specific associations between AD and DNAm.
+There is little evidence for a strong association between DNAm measured at birth and childhood AD. There have been other papers suggesting there are associations when measuring DNAm at later time points. Previous studies have used bulk tissue, but changes in DNAm may have cell-specific consequences. The most recent AD GWAS found enrichments for hits in DNAse hypersensitive regions amongst B cells, T cells and NK cells, suggesting cell-specific regulation in blood contributes to disease development. Recently, methods have been developed aiming to estimate associations between cell-specific DNAm and traits using DNAm measured in bulk tissue and a reference. We used the methods, CellDMC, TCA, and omicWAS to estimate cell-specific associations between AD and DNAm. Workflow is shown in __Figure \@ref(fig:workflow)__
 
-## CellDMC, TCA, and conventional results
+(ref:workflow-caption) Workflow. Discovery: P = 1.42x10-8 (1x10-7 / 7), Replication: P = 0.05 / N hits AND effect estimate in same direction.
+
+```{r workflow, results = "asis", fig.cap = '(ref:workflow-caption)'}
+include_graphics(params$workflow)
+```
+
+## Methods
+
+We used ARIES 15up samples and defined teenage AD using parental questionnaire data, where the parent was asked whether their child had eczema within the last 12 months. This question was asked at 3 timepoints: 16y 6m, 13y 10m, 13y 1m. If "Yes" was answered to any of these questions they were deemed a case, regardless of whether they had been to a doctor. This gave us `r summ$samplesizes$N_case` cases and `r summ$samplesizes$N_controls` controls after QC.
+
+DNAm data was taken from the 15up timepoint and measured using the EPIC array. `r summ$n_cpgs` CpG sites remained after QC.
+
+### Models
+
+1. DNAm ~ AD + sex + age + surrogate variables 
+2. DNAm ~ AD + sex + surrogate variables + cell counts
+
+Other variables needed? - Genetic principal components weren't used because lots of individuals would be removed as they don't have genotype data
+
+Note: Model 2 is only for the conventional EWAS
+
+## Results
+
+```{r summ-data-res}
+n_hits <- length(unique(summ$initial_hits$CpG))
+n_cells <- length(unique(summ$initial_hits[["Cell type"]]))
+
+omicwas_p_thresh <- 0.05 / n_hits
+omic_rep_cpgs <- summ$initial_hits %>%
+  dplyr::filter(Method == "omicWAS") %>%
+  dplyr::filter(P < omicwas_p_thresh) %>%
+  pull("CpG")
+
+## ewaff hits
+cc_hits <- summ$ewaff_hits %>%
+  dplyr::filter(Model != "unadjusted") %>%
+  dplyr::filter(P < 1e-7) %>%
+  pull(CpG)
+
+nocc_hits <- summ$ewaff_hits %>%
+  dplyr::filter(Model == "unadjusted") %>%
+  dplyr::filter(P < 1e-7) %>%
+  pull(CpG)  
+```
+
+There were `r n_hits` sites within `r n_cells` cells that were identified by CellDMC and TCA. Of these, `r length(omic_rep_cpgs)` replicated when using omicWAS __Table \@ref(tab:initial-hits)__. In the conventional EWAS, `r length(cc_hits)` CpG sites associated with AD when adjusting for cell counts and `r length(nocc_hits)` associated when not adjusting for cell counts.
 
 ```{r cs-qqs, results = "asis", fig.cap = "CellDMC and TCA QQ plots"}
 include_graphics(params$qq)
@@ -47,29 +100,7 @@ include_graphics(params$qq)
 include_graphics(params$man)
 ```
 
-NEED TO ADD IN CONVENTIONAL EWAS MANHATTAN HERE!
-
-<!-- ```{r cs-mans, results = "asis", fig.cap = "CellDMC and TCA manhattan plots"}
-include_graphics(params$man)
-``` -->
-
-## Replication using omicWAS
-
-Methods:
-
-1. Run EWAS using CellDMC and TCA
-2. Check to see if associations at FDR<0.05 in CellDMC results replicate in TCA results (FDR < 0.05, where no. of tests = number of sites to check for replication)
-3. Repeat in the opposite direction - i.e. TCA results replication in CellDMC results
-4. Take these hits forward for analyses using omicWAS
-5. Check replication in omicWAS at FDR<0.05
-
-Any that replicate in step "5" are said to be reliable associations. 
-
-For all analyses, DNAm was fitted as the outcome and AD was fitted as the exposure. 
-
-The results of all sites that replicated between the CellDMC and TCA results (step 2-3 of methods), are presented in __Table \@ref(tab:initial-hits)__ along with the omicWAS results for those sites. For all sites that were replicated using omicWAS, the results across all cell types are presented in XXX.
-
 ```{r initial-hits}
-kbl(params$summ$initial_hits, caption = "Association between AD and cell-specific DNAm") %>%
+kbl(summ$initial_hits, caption = "Association between AD and cell-specific DNAm") %>%
     kable_styling()
 ```

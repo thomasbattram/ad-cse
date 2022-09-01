@@ -44,6 +44,11 @@ hits <- hits$res
 ewaff_cc_res <- read_tsv(ewaff_cc_file)
 ewaff_no_cc_res <- read_tsv(ewaff_no_cc_file)
 
+## cases and controls
+sample_size <- list(N = getmode(ewaff_cc_res$N), 
+					N_case = getmode(ewaff_cc_res$N_cases), 
+					N_controls = getmode(ewaff_cc_res$N_controls))
+
 # ---------------------------------------------------------------
 # Functions for setup of data and qq plots etc.
 # ---------------------------------------------------------------
@@ -308,7 +313,26 @@ all_out$ewaff_no_cc <- ewaff_no_cc_res[ewaff_no_cc_res$CpG %in% sig_hits, ]
 ## | Cell type | CpG | Beta | SE | P |
 ## | ...
 
-summ_out <- list(initial_hits = all_hit_res, all_res = all_out)
+## TAB3 ewaff hits
+## CpG | model | Beta | SE | P
+
+ewaff_mods <- c("no_cc", "cc")
+names(ewaff_mods) <- c("unadjusted", "cell-count adjusted")
+ewaff_hits <- map_dfr(seq_along(ewaff_mods), function(x) {
+	mod <- ewaff_mods[x]
+	res <- get(paste0("ewaff_", mod, "_res")) %>%
+		dplyr::filter(P < 1e-7) %>%
+		mutate(Model = names(mod))
+	other_mod <- ewaff_mods[ewaff_mods != mod]
+	other_res <- get(paste0("ewaff_", other_mod, "_res")) %>%
+		dplyr::filter(CpG %in% res$CpG) %>%
+		mutate(Model = names(other_mod))
+	out_res <- bind_rows(res, other_res) %>%
+		arrange(CpG, P)
+})
+
+summ_out <- list(initial_hits = all_hit_res, all_res = all_out, ewaff_hits = ewaff_hits, 
+				 samplesizes = sample_size, n_cpgs = nrow(ewaff_cc_res))
 save(summ_out, file = summ_outfile)
 
 ## low omicwas p
