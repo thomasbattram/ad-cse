@@ -9,7 +9,7 @@ These scripts are for testing/extracting cell counts using the new whole blood r
 * [extract-cellcounts.R](extract-cellcounts.R) extracts the cell counts from the 15up individuals
 * [extract-cellcounts.sh](extract-cellcounts.sh) submits the R script as a job to BC4
 
-Run [extract-cellcounts.sh](extract-cellcounts.sh) using: 
+To run [extract-cellcounts.sh](extract-cellcounts.sh), first you need to edit the script on BC4 and add in the paths missing. Then run the code below:
 
 ``` bash
 sbatch extract-cellcounts.sh

@@ -16,7 +16,7 @@ acc="GSE167998"
 url="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE167nnn/GSE167998/suppl/GSE167998_RAW.tar"
 aries_dir="" # FILL THIS IN
 geo_outfile="GSE167998/samples.csv"
-outfile="../data-extraction-and-qc/extended-blood-celltypes-epic-15up.tsv"
+outfile="../data-extraction-and-qc/data/extended-blood-celltypes-epic-15up.tsv"
 minfi_functions="minfiEPIC.r"
 
 
