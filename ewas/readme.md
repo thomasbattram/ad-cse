@@ -42,3 +42,7 @@ The scripts run by the snakemake workflow are below:
 * [omicwas-ewas.R](scripts/omicwas-ewas.R) : Run omicWAS with all the replicated sites
 * [summarise-results.R](scripts/summarise-results.R) : Analyse the results (Manhattans, etc.) + output nice tables 
 * [ewas-report.Rmd](report/ewas-report.Rmd) : Put results into a report
+
+``` bash
+Rscript -e "rmarkdown::render('cs-ewas-report.Rmd', output_format='all', params = list(man = 'celldmc-tca-manhattans.png', qq = 'celldmc-tca-qqs.png', summ = 'summary-of-results.RData', workflow = 'cell-spec-workflow.drawio.png'))"
+````
