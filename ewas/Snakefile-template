@@ -161,7 +161,7 @@ rule cse_report:
         man = SCR_DIR + "/" + "results/celldmc-tca-manhattans.png",
         qq = SCR_DIR + "/" + "results/celldmc-tca-qqs.png",
         summ = SCR_DIR + "/" + "results/summary-of-results.RData",
-        workflow = LOCAL_DIR + "/" + "report/cell-spec-workflow.drawio.pdf",
+        workflow = LOCAL_DIR + "/" + "report/cell-spec-workflow.drawio.png",
         report = LOCAL_DIR + "/" + "report/cs-ewas-report.Rmd"
     output:
         LOCAL_DIR + "/" + "report/cs-ewas-report.html"
