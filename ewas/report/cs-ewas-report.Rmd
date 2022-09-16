@@ -5,6 +5,7 @@ output:
   bookdown::html_document2:
     toc: true
     theme: united
+    number_sections: false
 params:
   man: ""
   qq: ""
@@ -17,6 +18,7 @@ params:
 ## pkgs
 suppressWarnings(suppressPackageStartupMessages({
 library(bookdown) # extra markdown options
+library(rmarkdown) 
 library(knitr) # ...
 library(kableExtra) # extra nice tables
 library(tidyverse) # tidy code and data
@@ -47,7 +49,7 @@ There is little evidence for a strong association between DNAm measured at birth
 
 (ref:workflow-caption) Workflow. Discovery: P = 1.42x10-8 (1x10-7 / 7), Replication: P = 0.05 / N hits AND effect estimate in same direction.
 
-```{r workflow, results = "asis", fig.cap = '(ref:workflow-caption)'}
+```{r workflow, results = "asis", fig.cap = '(ref:workflow-caption)', out.width="50%"}
 include_graphics(params$workflow)
 ```
 
@@ -90,17 +92,24 @@ nocc_hits <- summ$ewaff_hits %>%
   pull(CpG)  
 ```
 
-There were `r n_hits` sites within `r n_cells` cells that were identified by CellDMC and TCA. Of these, `r length(omic_rep_cpgs)` replicated when using omicWAS __Table \@ref(tab:initial-hits)__. In the conventional EWAS, `r length(cc_hits)` CpG sites associated with AD when adjusting for cell counts and `r length(nocc_hits)` associated when not adjusting for cell counts.
+There were `r n_hits` sites within `r n_cells` cells that were identified by CellDMC and TCA. Of these, `r length(omic_rep_cpgs)` replicated when using omicWAS (see table below). In the conventional EWAS, `r length(cc_hits)` CpG sites associated with AD when adjusting for cell counts and `r length(nocc_hits)` associated when not adjusting for cell counts. __Figures \@ref(fig:cs-qqs) and \@ref(fig:cs-mans)__ show the QQ plots and Manhattan plots for the CellDMC and TCA EWAS.
 
-```{r cs-qqs, results = "asis", fig.cap = "CellDMC and TCA QQ plots"}
+```{r initial-hits}
+summ$initial_hits %>%
+  tidy_nums() %>%
+  paged_table(options = list(rows.print = 12))
+  # kbl(caption = "Association between AD and cell-specific DNAm") %>%
+  #   kable_styling() %>%
+  #   scroll_box(height = "300px")
+```
+
+
+
+```{r cs-qqs, results = "asis", fig.cap = "CellDMC and TCA QQ plots", out.width="100%"}
 include_graphics(params$qq)
 ```
 
-```{r cs-mans, results = "asis", fig.cap = "CellDMC and TCA manhattan plots"}
+```{r cs-mans, results = "asis", fig.cap = "CellDMC and TCA manhattan plots", out.width="100%"}
 include_graphics(params$man)
 ```
 
-```{r initial-hits}
-kbl(summ$initial_hits, caption = "Association between AD and cell-specific DNAm") %>%
-    kable_styling()
-```
