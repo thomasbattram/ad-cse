@@ -104,7 +104,7 @@ meffil::meffil.add.cell.type.reference(
     # description="Derived from FlowSorted.BloodExtended.EPIC",
     verbose=T)
 
-meffil.list.cell.type.reference()
+meffil.list.cell.type.references()
 
 ## remove clutter
 rm(list = c("RGset", "reference", "extracted.data", "samplesheet", "sex", "M", "U", "geo_samples", "selected"))
@@ -117,6 +117,9 @@ meth <- beta[, aries$samples$Sample_Name]
 rm(beta)
 
 out_celltypes <- meffil.estimate.cell.counts.from.betas(meth, "blood extended idoloptimized epic")
+
+out_celltypes <- as.data.frame(out_celltypes)
+out_celltypes$Sample_Name <- rownames(out_celltypes)
 
 ## Write it out
 write.table(out_celltypes, file = outfile, sep = "\t", row.names = F, col.names = T, quote = F)
