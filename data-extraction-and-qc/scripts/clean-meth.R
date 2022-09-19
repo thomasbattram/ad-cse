@@ -12,7 +12,7 @@
 
 ## pkgs
 library(tidyverse) # tidy code and data
-# library(meffil) # contains DNAm data annotations - doesn't work on bc4 because Cairo isn't installed... - 
+library(meffil) # contains DNAm data annotations - doesn't work on bc4 because Cairo isn't installed... - 
 library(aries) # extract aries data
 library(usefunc) # own package of useful functions
 
