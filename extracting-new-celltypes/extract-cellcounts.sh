@@ -6,10 +6,11 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=4
 #SBATCH --time=6:00:00
-#SBATCH --mem=50GB
+#SBATCH --mem=70GB
 
 ## Set working directory
 wdir=""
+scriptdir=""
 cd ${wdir}
 
 acc="GSE167998"
