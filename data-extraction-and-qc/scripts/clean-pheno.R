@@ -13,12 +13,14 @@ library(usefunc) # own package of useful functions
 args <- commandArgs(trailingOnly = TRUE)
 phen_infile <- args[1]
 meth_samples <- args[2]
-aries_dir <- args[3]
-phen_outfile <- args[4]
+cellcount_file <- args[3] # keep this as "" if using "aries" package
+aries_dir <- args[4]
+phen_outfile <- args[5]
 
 ## args testers
 # phen_infile <- "data/ad-data.tsv"
 # meth_samples <- "data/samplenames.txt"
+# cellcount_file <- "data/extended-blood-celltypes-epic-15up.tsv"
 # aries_dir <- "/user/work/ms13525/aries"
 # phen_outfile <- "data/ad-data-cleaned.tsv"
 
@@ -34,10 +36,14 @@ aries <- aries.select(aries_dir, time.point = "15up", featureset = "epic")
 samplesheet <- aries$samples %>%
 	dplyr::filter(Sample_Name %in% samples)
 
-cell_counts <- aries$cell.counts[["blood-gse35069-complete"]] %>%
-	as.data.frame() %>%
-	rownames_to_column(var = "Sample_Name") %>%
-	as_tibble()
+if (cellcount_file == "") {
+	cell_counts <- aries$cell.counts[["blood-gse35069-complete"]] %>%
+		as.data.frame() %>%
+		rownames_to_column(var = "Sample_Name") %>%
+		as_tibble()
+} else {
+	cell_counts <- read_tsv(cellcount_file)
+}
 
 pheno <- phen %>%
 	left_join(samplesheet) %>%
