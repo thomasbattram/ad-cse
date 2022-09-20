@@ -12,6 +12,12 @@
 		"error": "job-reports/{rule}.error"
 	},
 
+	"gen_svs" :
+	{
+		"time": "2:00:00", 
+		"mem": "75G"
+	},
+
 	"conv_ewas" :
 	{
 		"time": "2:00:00",
