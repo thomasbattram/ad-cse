@@ -13,6 +13,7 @@ The scripts can be executed manually or via snakemake. Here is the snakemake wor
 4. Submit pipeline as a job:
 
 ``` bash
+module add tools/pandoc/2.19.2
 snakemake -rp \
 -j 1 \
 --cluster-config bc4-cluster.json \
@@ -37,7 +38,8 @@ The scripts run by the snakemake workflow are below:
 
 * [gen-svs.R](scripts/gen-svs.R) : Generate SVs 
 * [conventional-ewas.R](scripts/conventional-ewas.R) : Run the EWAS using ewaff
-* [cse-ewas.R](scripts/cse-ewas.R) : Run the EWAS using cell-dmc and TCA
+* [celldmc-ewas.R](scripts/celldmc-ewas.R) : Run the EWAS using celldmc
+* [tca-ewas.R](scripts/tca-ewas.R) : Run the EWAS using TCA (split from celldmc script because TCA requires splitting the DNAm data into chunks)
 * [extract-cse-hits.R](scripts/extract-cse-hits.R) : Extract all sites that are associated with AD in a cell-type with one method and replicate in the other method
 * [omicwas-ewas.R](scripts/omicwas-ewas.R) : Run omicWAS with all the replicated sites
 * [summarise-results.R](scripts/summarise-results.R) : Analyse the results (Manhattans, etc.) + output nice tables 

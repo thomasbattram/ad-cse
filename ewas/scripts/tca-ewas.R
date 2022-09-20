@@ -16,14 +16,16 @@ args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
 svs_file <- args[3]
-out_files <- args[4]
-max_chunks <- as.numeric(args[5])
+covar_file <- args[4]
+out_files <- args[5]
+max_chunks <- as.numeric(args[6])
 
 print(args)
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "data/svs/ad-svs.tsv"
+# svs_file <- ""
+# covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # out_files <- "results/ewas/tca-temp/tca-res-1.RData results/ewas/tca-temp/tca-res-2.RData"
 # max_chunks <- 100
 
@@ -33,7 +35,7 @@ out_files <- unlist(str_split(out_files, " "))
 ## read in data
 pheno_dat <- read_tsv(phen_file)
 meth <- new_load(meth_file)
-svs <- read_tsv(svs_file)
+# svs <- read_tsv(svs_file)
 
 trait <- "ad"
 
@@ -59,17 +61,22 @@ impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
 
 meth <- impute_matrix(meth)
 
-cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO ME 
-cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
-rownames(cell_counts) <- pheno_dat$Sample_Name
+covs <- readLines(covar_file)
+if (svs_file != "") {
+    svs <- read_tsv(svs_file)
+    pheno_dat <- pheno_dat %>%
+        left_join(svs)       
+}
 
-covs <- c(grep("sv", colnames(svs), value = T), 
-          colnames(pheno_dat)[!colnames(pheno_dat) %in% c("aln", "alnqlet", "qlet", "Sample_Name", trait, cell_types)])
 phen_dat <- pheno_dat %>%
-    left_join(svs) %>%
     dplyr::select(Sample_Name, aln, all_of(c(trait, covs))) %>%
     dplyr::filter(!is.na(Sample_Name)) %>%
     na.omit(.)
+
+id_vars <- c("Sample_Name", "aln", "alnqlet", "qlet")
+cell_types <- colnames(pheno_dat)[!colnames(pheno_dat) %in% c(id_vars, covs, trait)]
+cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
+rownames(cell_counts) <- pheno_dat$Sample_Name
 
 cell_counts <- cell_counts[rownames(cell_counts) %in% phen_dat$Sample_Name, ]
 stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
@@ -94,6 +101,18 @@ reest_cell_props <- function(cc_mat)
 rownam <- rownames(cell_counts)
 cell_counts <- reest_cell_props(cell_counts)
 rownames(cell_counts) <- rownam
+
+## make all categorical variables into binary variables
+cat_covs <- c("BCD_plate")
+for (cov in cat_covs) {
+    if (!cov %in% colnames(phen_dat)) print("NEXT"); next
+    uniq_vals <- unique(phen_dat[[cov]])
+    for (i in seq_along(uniq_vals)) {
+        val <- uniq_vals[i]
+        phen_dat[[paste0(cov, i)]] <- ifelse(phen_dat[[cov]] == val, 1, 0)
+    }
+}
+phen_dat <- dplyr::select(phen_dat, -one_of(cat_covs))
 
 # ----------------------------------------
 # EWAS functions

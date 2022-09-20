@@ -15,18 +15,20 @@ library(usefunc) # own package of useful functions
 args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
-svs_file <- args[3]
-out_file <- args[4]
+svs_file <- args[3] # make this "" if not using
+covar_file <- args[4]
+out_file <- args[5]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "data/svs/ad-svs.tsv"
+# svs_file <- ""
+# covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # out_file <- "results/ewas/celldmc-res.RData"
 
 ## read in data
 pheno_dat <- read_tsv(phen_file)
 meth <- new_load(meth_file)
-svs <- read_tsv(svs_file)
+# svs <- read_tsv(svs_file)
 
 trait <- "ad"
 
@@ -52,17 +54,22 @@ impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
 
 meth <- impute_matrix(meth)
 
-cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO ME 
-cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
-rownames(cell_counts) <- pheno_dat$Sample_Name
+covs <- readLines(covar_file)
+if (svs_file != "") {
+    svs <- read_tsv(svs_file)
+    pheno_dat <- pheno_dat %>%
+        left_join(svs)       
+}
 
-covs <- c(grep("sv", colnames(svs), value = T), 
-          colnames(pheno_dat)[!colnames(pheno_dat) %in% c("aln", "alnqlet", "qlet", "Sample_Name", trait, cell_types)])
 phen_dat <- pheno_dat %>%
-    left_join(svs) %>%
     dplyr::select(Sample_Name, aln, all_of(c(trait, covs))) %>%
     dplyr::filter(!is.na(Sample_Name)) %>%
     na.omit(.)
+
+id_vars <- c("Sample_Name", "aln", "alnqlet", "qlet")
+cell_types <- colnames(pheno_dat)[!colnames(pheno_dat) %in% c(id_vars, covs, trait)]
+cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
+rownames(cell_counts) <- pheno_dat$Sample_Name
 
 cell_counts <- cell_counts[rownames(cell_counts) %in% phen_dat$Sample_Name, ]
 stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
@@ -124,13 +131,16 @@ run_ewas <- function(phen, p_dat, cc, meth_dat, IID, method, covs)
     
     if (!all(temp_phen[[IID]] == colnames(meth_dat))) stop("phenotype and DNAm data not matched.")
     ## FOR TESTS
-    # temp_meth <- temp_meth[1:50, 1:50]
+    # meth_dat <- meth_dat[1:50, 1:50]
     # temp_phen <- temp_phen[1:50, ]
     # temp_cc <- temp_cc[1:50, ]
 
     function_name <- paste0("run_", method)
     ewas_func <- match.fun(function_name)
     # p_to_keep <- p_to_keep[1]
+
+    # print(colSums(model.matrix(~ temp_cc + temp_phen[[phen]]:temp_cc)[, -1]) == 0)
+
     message("EWAS TIME")
     res <- tryCatch({
         ewas_func(temp_phen, meth_dat, phen, temp_cc, covs, IID)

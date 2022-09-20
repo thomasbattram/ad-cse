@@ -10,12 +10,14 @@ library(usefunc) # own package of useful functions
 args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
-svs_file <- args[3]
-out_file <- args[4]
+svs_file <- args[3] # make this "" if not using
+covar_file <- args[4]
+out_file <- args[5]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- "data/svs/ad-svs.tsv"
+# svs_file <- ""
+# covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # out_file <- "results/ewas/ewaff-res-no-cc.tsv"
 
 model <- ifelse(grepl("no-cc", out_file), "no_cc", "cc")
@@ -32,8 +34,11 @@ options(mc.cores=1)
 
 prep_pheno_data <- function(phen, pheno_dat, svs_file, IID, covs)
 {
+    if (svs_file == "") return(na.omit(pheno_dat[, c(IID, phen, covs)]))
     ## read in svs and cell counts
     svs <- read_tsv(svs_file)
+    sv_nam <- grep("sv", colnames(svs), value = T)
+    covs <- c(covs, sv_nam)
     # Prepare phenotype data
     temp_phen <- pheno_dat %>%
         left_join(svs, by = setNames(IID, IID)) %>%
@@ -47,6 +52,8 @@ run_ewas <- function(phen, pheno_dat, svs_file, meth_dat, IID, out_file, covs)
 {
     # prep pheno data
     temp_phen <- prep_pheno_data(phen, pheno_dat, svs_file, IID, covs)
+    sv_nam <- grep("sv", colnames(temp_phen), value = T)
+    covs <- c(covs, sv_nam)
     covs <- covs[covs %in% colnames(temp_phen)]
 
     # Match meth to Pheno
@@ -63,6 +70,8 @@ run_ewas <- function(phen, pheno_dat, svs_file, meth_dat, IID, out_file, covs)
     if (!all(temp_phen[[IID]] == colnames(temp_meth))) stop("phenotype and DNAm data not matched.")
 
     model <- as.formula(paste0(phen, " ~ ", paste(c("methylation", covs), collapse = " + ")))
+
+    print(temp_phen)
 
     # Run EWAS using ewaff
     message("Running EWAS")
@@ -92,13 +101,8 @@ run_ewas <- function(phen, pheno_dat, svs_file, meth_dat, IID, out_file, covs)
 # Run the EWAS
 # ----------------------------------------
 phen <- "ad"
-covariates <- colnames(phen_dat)[!colnames(phen_dat) %in% c("Sample_Name", "aln", "qlet", "alnqlet", phen)]
-covariates <- c(covariates, paste0("sv", 1:10))
 
-if (model == "no_cc") {
-    cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO ME 
-    covariates <- covariates[!covariates %in% cell_types]
-}
+covariates <- readLines(covar_file)
 
 run_ewas(phen = phen, 
 		 pheno_dat = phen_dat, 
