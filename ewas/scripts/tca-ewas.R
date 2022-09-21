@@ -24,7 +24,7 @@ print(args)
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- ""
+# svs_file <- "data/svs/ad-svs.tsv"
 # covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # out_files <- "results/ewas/tca-temp/tca-res-1.RData results/ewas/tca-temp/tca-res-2.RData"
 # max_chunks <- 100
@@ -183,7 +183,8 @@ if (!nrow(meth) %in% chunk_lengths) stop("Not going across all CpG sites")
 method <- "tca"
 # out_file <- out_files[1]
 lapply(out_files, function(out_file) {
-    chunk <- as.numeric(str_extract(out_file, "[0-9][0-9]*"))
+    filename <- basename(out_file)
+    chunk <- as.numeric(str_extract(filename, "[0-9][0-9]*"))
     meth_dat <- meth[chunk_lengths[chunk]:chunk_lengths[chunk+1], ]
     message("Running TCA analyses using chunk: ", chunk)
     ewas_res <- run_ewas(phen = trait, 
