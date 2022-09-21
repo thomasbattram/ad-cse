@@ -20,7 +20,7 @@
 
 	"conv_ewas" :
 	{
-		"time": "2:00:00",
+		"time": "5:00:00",
 		"output": "job-reports/{rule}-{wildcards.model}.out", 
 		"error": "job-reports/{rule}-{wildcards.model}.error"
 	},
