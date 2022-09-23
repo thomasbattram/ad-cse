@@ -15,13 +15,15 @@ library(usefunc) # own package of useful functions
 args <- commandArgs(trailingOnly = TRUE)
 phen_file <- args[1]
 meth_file <- args[2]
-svs_file <- args[3]
-hits_file <- args[4]
-out_file <- args[5]
+svs_file <- args[3] # make this "" if not using
+covar_file <- args[4]
+hits_file <- args[5]
+out_file <- args[6]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
 # svs_file <- "data/svs/ad-svs.tsv"
+# covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # hits_file <- "results/celldmc-tca-hits.RData"
 # out_file <- "results/ewas/omicwas-res.RData"
 
@@ -29,7 +31,7 @@ out_file <- args[5]
 pheno_dat <- read_tsv(phen_file)
 prev_hits <- new_load(hits_file)
 meth <- new_load(meth_file)
-svs <- read_tsv(svs_file)
+# svs <- read_tsv(svs_file)
 
 trait <- "ad"
 
@@ -60,19 +62,30 @@ prev_hits <- prev_hits$res
 cpgs <- unlist(map(prev_hits, "CpG"))
 meth <- meth[rownames(meth) %in% cpgs, ]
 
-cell_types <- c("Bcell", "CD4T", "CD8T", "Eos", "Mono", "Neu", "NK") ## ADD TO ME 
-cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
-rownames(cell_counts) <- pheno_dat$Sample_Name
+covs <- readLines(covar_file)
+if (svs_file != "") {
+    svs <- read_tsv(svs_file)
+    pheno_dat <- pheno_dat %>%
+        left_join(svs)       
+}
 
-covs <- c(grep("sv", colnames(svs), value = T)) ## ADD MORE TO ME PLEASE
 phen_dat <- pheno_dat %>%
-    left_join(svs) %>%
     dplyr::select(Sample_Name, aln, all_of(c(trait, covs))) %>%
     dplyr::filter(!is.na(Sample_Name)) %>%
     na.omit(.)
 
+id_vars <- c("Sample_Name", "aln", "alnqlet", "qlet")
+cell_types <- colnames(pheno_dat)[!colnames(pheno_dat) %in% c(id_vars, covs, trait)]
+cell_counts <- as.matrix(pheno_dat[, c(cell_types)])
+rownames(cell_counts) <- pheno_dat$Sample_Name
+
 cell_counts <- cell_counts[rownames(cell_counts) %in% phen_dat$Sample_Name, ]
 stopifnot(all(rownames(cell_counts) == phen_dat$Sample_Name))
+
+meth <- meth[, phen_dat$Sample_Name]
+
+## Make sex a 1/2 phenotype F=1, M=2
+phen_dat$sex <- ifelse(phen_dat$sex == "F", 1, 2)
 
 ## Negative values are soooo close to zero, and values need to be 0-1 for some methods
 cell_counts[sign(cell_counts) == -1] <- 0

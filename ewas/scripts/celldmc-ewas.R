@@ -21,7 +21,7 @@ out_file <- args[5]
 
 # phen_file <- "../data-extraction-and-qc/data/ad-data-cleaned.tsv"
 # meth_file <- "../data-extraction-and-qc/data/clean-meth.RData"
-# svs_file <- ""
+# svs_file <- "data/svs/ad-svs.tsv"
 # covar_file <- "../data-extraction-and-qc/data/covars-no-cc.txt"
 # out_file <- "results/ewas/celldmc-res.RData"
 
