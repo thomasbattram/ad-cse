@@ -4,7 +4,7 @@
 # -------------------------------------------------------
 # Version = v4
 
-# srun --job-name "InteractiveJob" --partition=veryshort --nodes=1 --ntasks-per-node=4 --cpus-per-task=4 --time=6:00:00 --mem=50GB --pty bash
+# srun --job-name "InteractiveJob" --partition=veryshort --nodes=1 --ntasks-per-node=4 --cpus-per-task=4 --time=6:00:00 --mem=75GB --pty bash
 
 # -------------------------------------------------------
 # Setup
@@ -50,7 +50,8 @@ samplesheet <- aries$samples %>%
 rm(pheno)
 
 # samples to remove - need to find out how to spot sex mismatches...
-sample_rm <- which(samplesheet$duplicate.rm | samplesheet$genotype.mismatch)
+sample_rm <- which(samplesheet$duplicate.rm | samplesheet$sample.mismatch)
+# sample.mismatch = (genotype.mismatch | predicted.sex != Sex)
 samplesheet <- samplesheet[-sample_rm, ]
 
 # methylation data 
@@ -71,6 +72,9 @@ message("finished reading in aries DNAm data")
 
 ## load annotation data
 annotation <- meffil::meffil.get.features("epic")
+
+## double check the number of missing values in "pvals" is 0!
+if (sum(is.na(pvals)) != 0) warning("Missing values in detection P value data - find out why")
 
 ## Filter meth data (remove sex chromosomes and SNPs and probes with high detection P-values)
 pvalue_over_0.05 <- pvals > 0.05
