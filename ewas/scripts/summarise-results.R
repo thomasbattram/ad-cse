@@ -236,7 +236,7 @@ ggsave(man_outfile, plot = man_out)
 omicwas_res <- lapply(celltypes, comb_res, res = omicwas)
 names(omicwas_res) <- celltypes
 
-p_thresh <- 1e-7 / length(celltypes)
+p_thresh <- 3.6e-8 / length(celltypes)
 
 all_hit_res <- lapply(1:length(hits), function(x) {
 	res <- hits[[x]]
