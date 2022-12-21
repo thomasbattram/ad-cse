@@ -21,4 +21,4 @@ outfile="../data-extraction-and-qc/data/extended-blood-celltypes-epic-15up.tsv"
 minfi_functions="minfiEPIC.r"
 
 
-Rscript extract-cellcounts.R ${acc} ${url} ${aries_dir} ${geo_outfile} ${outfile} ${minfi_functions}
+Rscript ${scriptdir}/extract-cellcounts.R ${acc} ${url} ${aries_dir} ${geo_outfile} ${outfile} ${minfi_functions}

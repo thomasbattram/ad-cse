@@ -112,6 +112,8 @@ rm(list = c("RGset", "reference", "extracted.data", "samplesheet", "sex", "M", "
 ## Estimate cell counts in 15up individuals
 aries <- aries.select(aries_dir, time.point = "15up", featureset = "epic")
 # test_samp <- head(aries$samples)
+# beta <- aries.methylation(aries)
+# meth <- beta[, test_samp$Sample_Name]
 beta <- aries.methylation(aries)
 meth <- beta[, aries$samples$Sample_Name]
 rm(beta)

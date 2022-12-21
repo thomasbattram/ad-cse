@@ -134,6 +134,7 @@ rule omicwas:
         phen = SCR_DIR + "/" + "../data-extraction-and-qc/data/ad-data-cleaned.tsv",
         meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
         svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = SCR_DIR + "/" + "../data-extraction-and-qc/data/covars-no-cc.txt",        
         hits = SCR_DIR + "/" + "results/celldmc-tca-hits.RData",
     output:
         SCR_DIR + "/" + "results/ewas/omicwas-res.RData"
@@ -142,6 +143,7 @@ rule omicwas:
                                         '{input.phen}' \
                                         '{input.meth}' \
                                         '{input.svs}' \
+                                        '{input.covars}' \
                                         '{input.hits}' \
                                         '{output}' """
 
