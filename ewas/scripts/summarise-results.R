@@ -91,14 +91,21 @@ make_qq <- function(res, p_title)
 #' @param cpg_annotations genomic annotations for the CpG sites so the genomic position can be plotted
 #' 
 #' @return Manhattan plot
-make_man <- function(res, cpg_annotations)
+make_man <- function(res, cpg_annotations, sigp=1e-7, sugp=1e-5, highl = FALSE, cpgs_to_highl = "")
 {
     res$name <- res$CpG
     res <- res %>%
         left_join(cpg_annotations)
     # to highlight
-    # cpg_h <- res[res$p < 1e-7, ]$name
-    cpg_h <- ""
+    if (highl) {
+    	if (cpgs_to_highl == "") {
+    		cpg_h <- res[res$p < sigp, ]$name
+    	} else {
+    		cpg_h <- cpgs_to_highl
+    	}
+    } else {
+    	cpg_h <- ""
+    }
     gg_man <- gg.manhattan(df = res, 
                            hlight = cpg_h, 
                            title = NULL, 
@@ -106,8 +113,8 @@ make_man <- function(res, cpg_annotations)
                            CHR = "chr", 
                            BP = "position", 
                            P = "p", 
-                           sig = 1e-7, 
-                           sugg = 1e-5, 
+                           sig = sigp, 
+                           sugg = sugp, 
                            lab = FALSE, 
                            colour = TRUE)
     gg_man <- gg_man + 
@@ -334,6 +341,74 @@ ewaff_hits <- map_dfr(seq_along(ewaff_mods), function(x) {
 summ_out <- list(initial_hits = all_hit_res, all_res = all_out, ewaff_hits = ewaff_hits, 
 				 samplesizes = sample_size, n_cpgs = nrow(ewaff_cc_res))
 save(summ_out, file = summ_outfile)
+
+# ---------------------------------------------------------------
+# Making plots for presentation
+# ---------------------------------------------------------------
+
+## ewaff manhattan
+ewaff_p_thresh <- 3.6e-8
+ewaff_cc_res <- ewaff_cc_res %>%
+	dplyr::select(CpG = probeID, Beta = BETA, SE = SE, p = P)
+
+ewaff_man_out <- make_man(ewaff_cc_res, 
+						  cpg_annotations = annotation, 
+						  sigp = ewaff_p_thresh, 
+						  sugp = 1e-7, 
+						  highl = TRUE)
+
+ggsave("results/ewaff-cc-manhattan.png", plot = ewaff_man_out)
+
+## celldmc manhattans
+summ_out <- new_load(summ_outfile)
+sig_cpgs <- unique(summ_out$all_res[[1]]$CpG)
+
+p_thresh <- 3.6e-8 / length(celltypes)
+
+omicwas_p_thresh <- 0.05 / length(unique(summ_out$initial_hits$CpG))
+omic_rep_res <- summ_out$initial_hits %>%
+	dplyr::filter(Method == "omicWAS") %>%
+	dplyr::filter(P < omicwas_p_thresh)
+
+cells_of_interest <- unique(omic_rep_res[["Cell type"]])
+
+celldmc_man_res <- celldmc_res %>%
+	bind_rows(.id = "celltype") %>%
+	dplyr::filter(celltype %in% cells_of_interest) %>%
+	dplyr::select(celltype, CpG, p) 
+
+lapply(cells_of_interest, function(ct) {
+	man_res <- celldmc_man_res %>%
+		dplyr::filter(celltype == ct)
+	cpgs_of_interest <- omic_rep_res %>%
+		dplyr::filter(`Cell type` == ct) %>%
+		pull(CpG)
+	man_plot <- make_man(man_res, 
+					     cpg_annotations = annotation, 
+					     sigp = ewaff_p_thresh, 
+					     sugp = 1e-7, 
+					     highl = TRUE, 
+					     cpgs_to_highl = cpgs_of_interest)
+	man_out_nam <- paste0("results/cse-manhattan-", ct, ".png")
+	ggsave(man_out_nam, plot = man_plot)
+})
+
+cpgs_of_interest_anno <- annotation %>%
+	dplyr::filter(name %in% sig_cpgs) %>%
+	arrange(chr) %>%
+	dplyr::select(name, chromosome, gene.symbol) %>%
+	left_join(omic_rep_res[, c("CpG", "Cell type")], by = c("name" = "CpG")) %>%
+	as_tibble
+
+cpgs_of_interest_anno %>%
+	dplyr::filter(`Cell type` == "CD8mem")
+
+cpgs_of_interest_anno$gene.symbol
+
+head(cpgs_of_interest_anno)
+
+omic_rep_res %>%
+	dplyr::filter(CpG %in% c("cg03638874", "cg13133420"))
 
 ## low omicwas p
 # omic_rep_cpgs <- all_hit_res %>%
