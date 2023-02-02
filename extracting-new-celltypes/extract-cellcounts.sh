@@ -18,7 +18,7 @@ cd ${wdir}
 aries_dir="" # FILL THIS IN
 samp="samplesheet.csv"
 qc="qc.objects.Robj"
-cc="../data-extraction-and-qc/extended-blood-celltypes-epic-15up-idats.tsv"
+cc="../data-extraction-and-qc/data/extended-blood-celltypes-epic-15up-idats.tsv"
 idats="MA028"
 
 

@@ -35,9 +35,11 @@ write.csv(samplesheet, file = samp_outfile, quote = TRUE, row.names = FALSE)
 qc.objects <- meffil.qc(samplesheet, cell.type.reference="blood gse167998", verbose=TRUE)
 save(qc.objects, file= qc_outfile)
 
+# load(qc_outfile)
+
 cc <- t(sapply(qc.objects, function(obj) obj$cell.counts$counts))
 cc <- data.frame(Sample_Name = row.names(cc), cc)
-write.table(cc, outfile, sep = "\t", row.names = F, col.names = T, quote = F)
+write.table(cc, file = cc_outfile, sep = "\t", row.names = F, col.names = T, quote = F)
 
 # ## Estimate cell counts in 15up individuals
 # aries <- aries.select(aries_dir, time.point = "15up", featureset = "epic")
