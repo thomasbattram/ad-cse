@@ -21,8 +21,9 @@ samp_outfile <- args[2]
 qc_outfile <- args[3]
 cc_outfile <- args[4]
 path_to_idat_files <- args[5]
+time_point <- args[6] # 15up or F24
 # rsync -rv /projects/MRC-IEU/research/data/alspac/epigenetic/methylation/aries/raw/MA028/ MA028
-aries <- aries.select(aries_dir, time.point = "15up", featureset = "epic")
+aries <- aries.select(aries_dir, time.point = time_point, featureset = "epic")
 aries_samplesheet <- aries$samples
 samplesheet <- meffil.create.samplesheet(path_to_idat_files, recursive=TRUE)
 all(aries_samplesheet$Sample_Name %in% samplesheet$Sample_Name) # TRUE
