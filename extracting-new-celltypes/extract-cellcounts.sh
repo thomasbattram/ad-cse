@@ -16,10 +16,11 @@ cd ${wdir}
 
 # url="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE167nnn/GSE167998/suppl/GSE167998_RAW.tar"
 aries_dir="" # FILL THIS IN
-samp="samplesheet.csv"
-qc="qc.objects.Robj"
-cc="../data-extraction-and-qc/extended-blood-celltypes-epic-15up-idats.tsv"
-idats="MA028"
+tp="15up" # UPDATE ME
+mkdir -p ${tp}
+samp="${tp}/samplesheet.csv"
+qc="${tp}/qc.objects.Robj"
+cc="../data-extraction-and-qc/data/extended-blood-celltypes-epic-${tp}-idats.tsv"
+idats="MA028" # UPDATE ME
 
-
-Rscript ${scriptdir}/extract-cellcounts.R ${aries_dir} ${samp} ${qc} ${cc} ${idats} 
+Rscript ${scriptdir}/extract-cellcounts.R ${aries_dir} ${samp} ${qc} ${cc} ${idats} ${tp}

@@ -347,68 +347,68 @@ save(summ_out, file = summ_outfile)
 # ---------------------------------------------------------------
 
 ## ewaff manhattan
-ewaff_p_thresh <- 3.6e-8
-ewaff_cc_res <- ewaff_cc_res %>%
-	dplyr::select(CpG = probeID, Beta = BETA, SE = SE, p = P)
+# ewaff_p_thresh <- 3.6e-8
+# ewaff_cc_res <- ewaff_cc_res %>%
+# 	dplyr::select(CpG = probeID, Beta = BETA, SE = SE, p = P)
 
-ewaff_man_out <- make_man(ewaff_cc_res, 
-						  cpg_annotations = annotation, 
-						  sigp = ewaff_p_thresh, 
-						  sugp = 1e-7, 
-						  highl = TRUE)
+# ewaff_man_out <- make_man(ewaff_cc_res, 
+# 						  cpg_annotations = annotation, 
+# 						  sigp = ewaff_p_thresh, 
+# 						  sugp = 1e-7, 
+# 						  highl = TRUE)
 
-ggsave("results/ewaff-cc-manhattan.png", plot = ewaff_man_out)
+# ggsave("results/ewaff-cc-manhattan.png", plot = ewaff_man_out)
 
-## celldmc manhattans
-summ_out <- new_load(summ_outfile)
-sig_cpgs <- unique(summ_out$all_res[[1]]$CpG)
+# ## celldmc manhattans
+# summ_out <- new_load(summ_outfile)
+# sig_cpgs <- unique(summ_out$all_res[[1]]$CpG)
 
-p_thresh <- 3.6e-8 / length(celltypes)
+# p_thresh <- 3.6e-8 / length(celltypes)
 
-omicwas_p_thresh <- 0.05 / length(unique(summ_out$initial_hits$CpG))
-omic_rep_res <- summ_out$initial_hits %>%
-	dplyr::filter(Method == "omicWAS") %>%
-	dplyr::filter(P < omicwas_p_thresh)
+# omicwas_p_thresh <- 0.05 / length(unique(summ_out$initial_hits$CpG))
+# omic_rep_res <- summ_out$initial_hits %>%
+# 	dplyr::filter(Method == "omicWAS") %>%
+# 	dplyr::filter(P < omicwas_p_thresh)
 
-cells_of_interest <- unique(omic_rep_res[["Cell type"]])
+# cells_of_interest <- unique(omic_rep_res[["Cell type"]])
 
-celldmc_man_res <- celldmc_res %>%
-	bind_rows(.id = "celltype") %>%
-	dplyr::filter(celltype %in% cells_of_interest) %>%
-	dplyr::select(celltype, CpG, p) 
+# celldmc_man_res <- celldmc_res %>%
+# 	bind_rows(.id = "celltype") %>%
+# 	dplyr::filter(celltype %in% cells_of_interest) %>%
+# 	dplyr::select(celltype, CpG, p) 
 
-lapply(cells_of_interest, function(ct) {
-	man_res <- celldmc_man_res %>%
-		dplyr::filter(celltype == ct)
-	cpgs_of_interest <- omic_rep_res %>%
-		dplyr::filter(`Cell type` == ct) %>%
-		pull(CpG)
-	man_plot <- make_man(man_res, 
-					     cpg_annotations = annotation, 
-					     sigp = ewaff_p_thresh, 
-					     sugp = 1e-7, 
-					     highl = TRUE, 
-					     cpgs_to_highl = cpgs_of_interest)
-	man_out_nam <- paste0("results/cse-manhattan-", ct, ".png")
-	ggsave(man_out_nam, plot = man_plot)
-})
+# lapply(cells_of_interest, function(ct) {
+# 	man_res <- celldmc_man_res %>%
+# 		dplyr::filter(celltype == ct)
+# 	cpgs_of_interest <- omic_rep_res %>%
+# 		dplyr::filter(`Cell type` == ct) %>%
+# 		pull(CpG)
+# 	man_plot <- make_man(man_res, 
+# 					     cpg_annotations = annotation, 
+# 					     sigp = ewaff_p_thresh, 
+# 					     sugp = 1e-7, 
+# 					     highl = TRUE, 
+# 					     cpgs_to_highl = cpgs_of_interest)
+# 	man_out_nam <- paste0("results/cse-manhattan-", ct, ".png")
+# 	ggsave(man_out_nam, plot = man_plot)
+# })
 
-cpgs_of_interest_anno <- annotation %>%
-	dplyr::filter(name %in% sig_cpgs) %>%
-	arrange(chr) %>%
-	dplyr::select(name, chromosome, gene.symbol) %>%
-	left_join(omic_rep_res[, c("CpG", "Cell type")], by = c("name" = "CpG")) %>%
-	as_tibble
+# cpgs_of_interest_anno <- annotation %>%
+# 	dplyr::filter(name %in% sig_cpgs) %>%
+# 	arrange(chr) %>%
+# 	dplyr::select(name, chromosome, gene.symbol) %>%
+# 	left_join(omic_rep_res[, c("CpG", "Cell type")], by = c("name" = "CpG")) %>%
+# 	as_tibble
 
-cpgs_of_interest_anno %>%
-	dplyr::filter(`Cell type` == "CD8mem")
+# cpgs_of_interest_anno %>%
+# 	dplyr::filter(`Cell type` == "CD8mem")
 
-cpgs_of_interest_anno$gene.symbol
+# cpgs_of_interest_anno$gene.symbol
 
-head(cpgs_of_interest_anno)
+# head(cpgs_of_interest_anno)
 
-omic_rep_res %>%
-	dplyr::filter(CpG %in% c("cg03638874", "cg13133420"))
+# omic_rep_res %>%
+# 	dplyr::filter(CpG %in% c("cg03638874", "cg13133420"))
 
 ## low omicwas p
 # omic_rep_cpgs <- all_hit_res %>%
