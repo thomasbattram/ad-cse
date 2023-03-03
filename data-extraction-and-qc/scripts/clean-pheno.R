@@ -22,7 +22,7 @@ cc_covars_outfile <- args[7]
 ## args testers
 # phen_infile <- "data/ad-data.tsv"
 # meth_samples <- "data/samplenames.txt"
-# cellcount_file <- "data/extended-blood-celltypes-epic-15up.tsv"
+# cellcount_file <- "data/extended-blood-celltypes-epic-15up-idats.tsv"
 # aries_dir <- "/user/work/ms13525/aries"
 # phen_outfile <- "data/ad-data-cleaned.tsv"
 # covars_outfile <- "data/covars-no-cc.txt"
