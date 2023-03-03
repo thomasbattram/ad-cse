@@ -8,6 +8,9 @@ Analyses will be split into different folders, each with their own scripts and w
 
 ## Analyses
 
+* [extracting-new-celltypes](extracting-new-celltypes)
+	+ Extract cell types from the Salas 2022 paper
+
 * [data-extraction-and-qc](data-extraction-and-qc)
 	+ Define AD in ARIES participants and QC pheno + DNAm data
 
