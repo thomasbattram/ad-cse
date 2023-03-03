@@ -91,7 +91,7 @@ make_qq <- function(res, p_title)
 #' @param cpg_annotations genomic annotations for the CpG sites so the genomic position can be plotted
 #' 
 #' @return Manhattan plot
-make_man <- function(res, cpg_annotations, sigp=1e-7, sugp=1e-5, highl = FALSE, cpgs_to_highl = "")
+make_man <- function(res, cpg_annotations, sigp=3.6e-8, sugp=1e-5, highl = FALSE, cpgs_to_highl = "")
 {
     res$name <- res$CpG
     res <- res %>%
