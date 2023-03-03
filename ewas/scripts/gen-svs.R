@@ -254,8 +254,12 @@ save(sv_rem_info, file = removed_out_file)
 ## Add SVs to covariate file
 sv_covs <- grep("sv", colnames(svs_out), value=T)
 message("Appending the following variables to the covariates file: ", paste(sv_covs, collapse = ", "))
-write(sv_covs, file = covars_outfile, append = TRUE)
-write(sv_covs, file = cc_covars_outfile, append = TRUE)
+covars <- readLines(covars_outfile)
+covars <- unique(c(covars, sv_covs))
+write(covars, file = covars_outfile)
+covars_cc <- readLines(cc_covars_outfile)
+covars_cc <- unique(c(covars_cc, sv_covs))
+write(sv_covs, file = cc_covars_outfile)
 
 
 
