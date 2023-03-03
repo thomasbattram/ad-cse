@@ -17,6 +17,7 @@ rule all:
         expand(SCR_DIR + "/" + "results/ewas/ewaff-res-{model}.tsv", model = ["cc", "no-cc"]),
         SCR_DIR + "/" + "results/ewas/celldmc-res.RData",
         SCR_DIR + "/" + "results/ewas/tca-res.RData",
+        expand(SCR_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
         LOCAL_DIR + "/" + "report/cs-ewas-report.html"
 
 ## Generate SVs that can be used as covariates in the EWAS
@@ -192,3 +193,61 @@ rule cse_report:
                                                              summ = '{input.summ}', 
                                                              workflow = '{input.workflow}'))\" """
 
+
+## Copy cc covars to no-covs file for var ewas
+rule cp_covars:
+    input: 
+        SCR_DIR + "/" + "../data-extraction-and-qc/data/covars-cc.txt"
+    output:
+        SCR_DIR + "/" + "../data-extraction-and-qc/data/covars-no-covs.txt"
+    shell:
+        "echo $HOSTNAME; cp {input} {output}"
+
+## Run var EWAS
+rule var_ewas:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/var-ewas.R", 
+        phen = SCR_DIR + "/" + "../data-extraction-and-qc/data/ad-data-cleaned.tsv",
+        meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
+        svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = SCR_DIR + "/" + "../data-extraction-and-qc/data/covars-{mod}.txt",
+    output: 
+        SCR_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' """   
+
+## Summarise variance EWAS results
+rule summ_var_res:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/summarise-varewas-results.R",
+        res = expand(SCR_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
+        cse_summ = SCR_DIR + "/" + "results/summary-of-results.RData",
+    output:
+        plots = SCR_DIR + "/" + "results/var-ewas-man-qq.png",
+        summ = SCR_DIR + "/" + "results/var-ewas-summary-of-results.RData"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.res}' \
+                                        '{input.cse_summ}' \
+                                        '{output.plots}' \
+                                        '{output.summ}' """
+
+## Generate report                                        
+rule varewas_report:
+    input:
+        plots = SCR_DIR + "/" + "results/var-ewas-man-qq.png",
+        summ = SCR_DIR + "/" + "results/var-ewas-summary-of-results.RData",
+        report = LOCAL_DIR + "/" + "report/var-ewas-report.Rmd"
+    output:
+        LOCAL_DIR + "/" + "report/var-ewas-report.html"
+    shell:
+        """echo $HOSTNAME; \
+                Rscript -e \"rmarkdown::render('{input.report}',
+                                               output_format='all', 
+                                               params = list(plots = '{input.plots}', 
+                                                             summ = '{input.summ}'))\" """

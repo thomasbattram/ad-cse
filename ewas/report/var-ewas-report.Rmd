@@ -1,0 +1,98 @@
+---
+title: Assessing the association cell-specific DNAm and atopic dermatitis 
+author: Thomas Battram
+output:
+  bookdown::html_document2:
+    toc: true
+    theme: united
+    number_sections: false
+params:
+  plots: ""
+  summ: ""
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+
+## pkgs
+suppressWarnings(suppressPackageStartupMessages({
+library(bookdown) # extra markdown options
+library(rmarkdown) 
+library(knitr) # ...
+library(kableExtra) # extra nice tables
+library(tidyverse) # tidy code and data
+library(ewaff) # For easy EWAS plots
+library(cowplot) # plotting figures on a grid
+library(RColorBrewer) # for plotting colours
+library(usefunc) # own package of useful functions
+}))
+
+knitr::opts_chunk$set(echo = FALSE, 
+           			  warning = FALSE, 
+            		  message = TRUE, 
+            		  cache = FALSE, 
+            		  dpi = 300 
+            		  )
+
+## params tester
+# params <- list(plots = "results/var-ewas-man-qq.png", summ = "results/var-ewas-summary-of-results.RData")
+
+# load summ data
+summ <- new_load(params$summ)
+
+```
+
+## Introduction
+
+There is little evidence for a strong association between DNAm measured at birth and childhood AD. There have been other papers suggesting there are associations when measuring DNAm at later time points. Previous studies have used bulk tissue, but changes in DNAm may have cell-specific consequences or may relate to changes in DNAm variance and not mean effects. We used the method, jlst assess if there are differences in DNAm variance between AD cases and controls.
+
+## Methods
+
+We used ARIES 15up samples and defined teenage AD using parental questionnaire data, where the parent was asked whether their child had eczema within the last 12 months. This question was asked at 3 timepoints: 16y 6m, 13y 10m, 13y 1m. If "Yes" was answered to any of these questions they were deemed a case, regardless of whether they had been to a doctor. This gave us `r summ$samplesizes$N_case` cases and `r summ$samplesizes$N_controls` controls after QC.
+
+DNAm data was taken from the 15up timepoint and measured using the EPIC array. `r summ$n_cpgs` CpG sites remained after QC.
+
+### Models
+
+1. DNAm ~ AD
+2. DNAm ~ AD + sex + age + surrogate variables 
+3. DNAm ~ AD + sex + surrogate variables + cell counts
+
+Other variables needed? - Genetic principal components weren't used because lots of individuals would be removed as they don't have genotype data
+
+Note: In the default settings of the `vartest()` function, covariates are not taken into account when estimating differences in variance.
+
+## Results
+
+```{r summ-data-res}
+res <- summ$res
+p_threshold <- 3.6e-8
+default_sig_cpgs <- res %>% 
+  dplyr::filter(Model == "no-covs", P < p_threshold) %>%
+  pull(CpG)
+
+all_sig_res <- res %>%
+  dplyr::filter(P < p_threshold, CpG %in% default_sig_cpgs)
+
+tab_sig <- table(all_sig_res$CpG)
+
+n_hits <- length(default_sig_cpgs)
+n_rep <- sum(tab_sig == 3)
+
+```
+
+There were `r n_hits` sites identified as having DNAm variance differences between cases and controls when using the default model (no covariates). `r n_rep` replicated across the other models. The table below shows all associations at P<1x10^-5^ and whether they replicated in the conventional EWAS, or what cells they were identified in at P<3.6x10^-8^. __Figure \@ref(fig:man-qq)__ shows the manhattan and QQ plots for each of the models.
+
+```{r initial-hits}
+summ$initial_hits %>%
+  tidy_nums() %>%
+  paged_table(options = list(rows.print = 12))
+  # kbl(caption = "Association between AD and cell-specific DNAm") %>%
+  #   kable_styling() %>%
+  #   scroll_box(height = "300px")
+```
+
+
+```{r man-qq, results = "asis", fig.cap = "QQ and Manhattan plots for the variance EWAS", out.width="100%"}
+include_graphics(params$plots)
+```
+
