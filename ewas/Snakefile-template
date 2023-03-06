@@ -18,7 +18,8 @@ rule all:
         SCR_DIR + "/" + "results/ewas/celldmc-res.RData",
         SCR_DIR + "/" + "results/ewas/tca-res.RData",
         expand(SCR_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
-        LOCAL_DIR + "/" + "report/cs-ewas-report.html"
+        LOCAL_DIR + "/" + "report/cs-ewas-report.html", 
+        LOCAL_DIR + "/" + "report/var-ewas-report.html"
 
 ## Generate SVs that can be used as covariates in the EWAS
 rule gen_svs:
