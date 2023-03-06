@@ -83,7 +83,8 @@ n_rep <- sum(tab_sig == 3)
 There were `r n_hits` sites identified as having DNAm variance differences between cases and controls when using the default model (no covariates). `r n_rep` replicated across the other models. The table below shows all associations at P<1x10^-5^ and whether they replicated in the conventional EWAS, or what cells they were identified in at P<3.6x10^-8^. __Figure \@ref(fig:man-qq)__ shows the manhattan and QQ plots for each of the models.
 
 ```{r initial-hits}
-summ$initial_hits %>%
+res %>%
+  arrange(CpG, P) %>%
   tidy_nums() %>%
   paged_table(options = list(rows.print = 12))
   # kbl(caption = "Association between AD and cell-specific DNAm") %>%
