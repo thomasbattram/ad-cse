@@ -2,6 +2,15 @@
 
 These scripts are for estimating cell counts using the new whole blood reference with 12 cell types: [paper-link](https://www.nature.com/articles/s41467-021-27864-7). 
 
+## Before running any scripts please make a "data" and "results" folder
+
+In linux:
+
+``` bash
+mkdir data
+mkdir results
+```
+
 ## Scripts
 
 * [estimate-cellcounts.R](scripts/estimate-cellcounts.R) estimates the cell counts for individuals for using IDAT files
