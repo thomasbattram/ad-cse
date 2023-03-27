@@ -1,6 +1,10 @@
-pkgs <- list(cran=c("devtools", "tidyverse", "BiocManager", "matrixStats", "cowplot", "cluster", "readxl"),
-             bioc="EpiDISH",
-             git=c("https://github.com/perishky/meffil", "https://github.com/perishky/ewaff", "https://github.com/thomasbattram/usefunc"))
+pkgs <- list(cran=c("devtools", "tidyverse", "BiocManager", "matrixStats", "cowplot", 
+                    "cluster", "readxl", "SmartSVA", "TCA"),
+             bioc=c("EpiDISH", "sva"),
+             git=c("https://github.com/perishky/meffil", 
+                   "https://github.com/perishky/ewaff", 
+                   "https://github.com/thomasbattram/usefunc", 
+                   "https://github.com/jrs95/jlst"))
 
 for (pkg in pkgs$cran) {
   cat("R package:", pkg, "\n")
