@@ -2,7 +2,7 @@
 # Script to generate surrogate variables for ARIES
 # -------------------------------------------------------
 
-# srun --job-name "InteractiveJob" --partition=veryshort --nodes=1 --ntasks-per-node=4 --cpus-per-task=4 --time=6:00:00 --mem=50GB --pty bash
+# srun --job-name "InteractiveJob" --account=smed001801 --partition=veryshort --nodes=1 --ntasks-per-node=4 --cpus-per-task=4 --time=6:00:00 --mem=50GB --pty bash
 
 ## pkgs
 library(tidyverse) # tidy data and code
@@ -194,9 +194,10 @@ regress_sv <- function(svs, pheno, trait)
 		form <- as.formula(paste(x, trait, sep = " ~ "))
 		fit <- lm(form, data = sv_check_dat)
 		out_nums <- summary(fit)$coef[2, ]
+		out_r2 <- summary(fit)$adj.r.squared
 		out <- as_tibble(t(as.matrix(out_nums))) %>%
-			mutate(sv = x) %>%
-			dplyr::select(sv, beta = Estimate, SE = `Std. Error`, t_val = `t value`, P = `Pr(>|t|)`)
+			mutate(sv = x, r2 = out_r2) %>%
+			dplyr::select(sv, beta = Estimate, SE = `Std. Error`, t_val = `t value`, P = `Pr(>|t|)`, r2)
 		return(out)
 	})
 
@@ -215,18 +216,21 @@ names(sv_assoc_list) <- sv_vars
 
 sv_assoc <- bind_rows(map(sv_assoc_list, "assoc"), .id = "variable")
 
+## reorder the variables for the plot
+sv_assoc$sv <- factor(sv_assoc$sv, levels = sv_nam)
+var_levels <- c(sv_vars[!sv_vars %in% celltypes], celltypes)
+sv_assoc$variable <- factor(sv_assoc$variable, levels = var_levels)
+
 ## Table
 # SV | trait | beta
 
-heatmap_b <- ggplot(sv_assoc, aes(sv, variable, fill = beta)) +
+heatmap_r2 <- ggplot(sv_assoc, aes(sv, variable, fill = r2)) +
     geom_tile(color = "white") + 
-    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                         midpoint = 0, space = "Lab", 
-                         name="Beta")
+    geom_text(aes(label = round(r2, 2))) + 
+    scale_fill_gradient2(low = "white", high = "red", space = "Lab", name="r2")
 
-ggsave(heatmap_outfile, plot = heatmap_b)
+ggsave(heatmap_outfile, plot = heatmap_r2)
 
-## START FROM HERE!!
 
 ## REMOVE SVS ASSOC WITH TRAIT HERE
 sv_to_rm <- sv_assoc %>%
