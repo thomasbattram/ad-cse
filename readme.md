@@ -1,6 +1,10 @@
 # Cell-specific associations between DNAm and AD
 
-For external collaborators, please go to [scripts-for-external-ewas](scripts-for-external-ewas) for all scripts and explanations of how these scripts work.
+## For collaborators
+
+For external collaborators, please clone this repository and then use [scripts-for-external-ewas](scripts-for-external-ewas) for all scripts and explanations of how these scripts work.
+
+## Brief intro
 
 Briefly, this project will include both conventional and cell-specific EWAS of AD in ARIES participants and potentially other cohorts. 
 
