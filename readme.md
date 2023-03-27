@@ -1,6 +1,6 @@
 # Cell-specific associations between DNAm and AD
 
-Analysis plan can be found in [analysis-plan.docx](docs/analysis-plan.docx). 
+For external collaborators, please go to [scripts-for-external-ewas](scripts-for-external-ewas) for all scripts and explanations of how these scripts work.
 
 Briefly, this project will include both conventional and cell-specific EWAS of AD in ARIES participants and potentially other cohorts. 
 
