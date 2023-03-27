@@ -1,0 +1,139 @@
+#!/bin/python
+
+import os, sys
+
+## Directories being used
+LOCAL_DIR = os.getcwd()
+WORK_DIR = LOCAL_DIR ## Change this if the working directory is different to where the scripts are
+
+CHUNKS = list(range(1, 101))
+
+## Cell-specific effects methods used here
+METHODS = ["celldmc", "tca", "omicwas"]
+
+rule all:
+    input:
+        expand(WORK_DIR + "/" + "results/ewas/ewaff-res-{model}.tsv", model = ["cc", "no-cc"]),
+        WORK_DIR + "/" + "results/ewas/celldmc-res.RData",
+        WORK_DIR + "/" + "results/ewas/tca-res.RData",
+        expand(WORK_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"])
+
+## Generate SVs that can be used as covariates in the EWAS
+rule gen_svs:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/gen-svs.R", 
+        phen = WORK_DIR + "/" + "data/cleaned-pheno-data.tsv",
+        batch = WORK_DIR + "/" + "data/batch-vars.txt",
+        meth = WORK_DIR + "/" + "data/clean-meth.RData",
+    output:
+        svs = WORK_DIR + "/" + "data/svs/ad-svs.tsv",
+        removed_svs = WORK_DIR + "/" + "data/svs/ad-removed-svs.RData",
+        covars_outfile = WORK_DIR + "/" + "data/covars-no-cc.txt", 
+        cc_covars_outfile = WORK_DIR + "/" + "data/covars-cc.txt",
+        heatmap = WORK_DIR + "/" + "results/svs-heatmap.png"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.batch}' \
+                                        '{input.meth}' \
+                                        '{output.svs}' \
+                                        '{output.removed_svs}' \
+                                        '{output.covars_outfile}' \
+                                        '{output.cc_covars_outfile}' \
+                                        '{output.heatmap}' """
+
+## Run the "conventional" EWAS adjusting for cell counts
+rule conv_ewas:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/conventional-ewas.R", 
+        phen = WORK_DIR + "/" + "data/cleaned-pheno-data.tsv",
+        meth = WORK_DIR + "/" + "data/clean-meth.RData",
+        svs = WORK_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = WORK_DIR + "/" + "data/covars-{model}.txt",
+    output: 
+        WORK_DIR + "/" + "results/ewas/ewaff-res-{model}.tsv", 
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' """   
+
+## Run the cell-specific EWAS
+rule celldmc:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/celldmc-ewas.R", 
+        phen = WORK_DIR + "/" + "data/cleaned-pheno-data.tsv",
+        meth = WORK_DIR + "/" + "data/clean-meth.RData",
+        svs = WORK_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = WORK_DIR + "/" + "data/covars-no-cc.txt",        
+    output: 
+        WORK_DIR + "/" + "results/ewas/celldmc-res.RData"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' """   
+
+## Run the TCA analyses
+rule tca:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/tca-ewas.R", 
+        phen = WORK_DIR + "/" + "data/cleaned-pheno-data.tsv",
+        meth = WORK_DIR + "/" + "data/clean-meth.RData",
+        svs = WORK_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = WORK_DIR + "/" + "data/covars-no-cc.txt",
+    output: 
+        expand(WORK_DIR + "/" + "results/ewas/tca-temp/tca-res-{chunk}.RData", chunk = CHUNKS)
+    params:
+        max_chunks = len(CHUNKS)
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' \
+                                        '{params.max_chunks} '"""   
+
+## Combine TCA results into one file
+rule tca_comb:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/combine-tca-res.R", 
+        tca = expand(WORK_DIR + "/" + "results/ewas/tca-temp/tca-res-{chunk}.RData", chunk = CHUNKS),
+    output: 
+        WORK_DIR + "/" + "results/ewas/tca-res.RData"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.tca}' \
+                                        '{output}' """  
+
+## Copy cc covars to no-covs file for var ewas
+rule cp_covars:
+    input: 
+        WORK_DIR + "/" + "data/covars-cc.txt"
+    output:
+        WORK_DIR + "/" + "data/covars-no-covs.txt"
+    shell:
+        "echo $HOSTNAME; cp {input} {output}"
+
+## Run var EWAS
+rule var_ewas:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/var-ewas.R", 
+        phen = WORK_DIR + "/" + "data/cleaned-pheno-data.tsv",
+        meth = WORK_DIR + "/" + "data/clean-meth.RData",
+        svs = WORK_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = WORK_DIR + "/" + "data/covars-{mod}.txt",
+    output: 
+        WORK_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' """   

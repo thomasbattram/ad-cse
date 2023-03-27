@@ -1,0 +1,62 @@
+{
+	"__default__" :
+	{
+		"name": "{rule}",
+		"partition": "veryshort",
+		"nodes": "1",
+		"ncpu": "1",
+		"ntask": "1",
+		"time": "1:00:00",
+		"mem": "50G",
+		"output": "job-reports/{rule}.out",
+		"error": "job-reports/{rule}.error"
+	},
+
+	"gen_svs" :
+	{
+		"time": "2:00:00", 
+		"mem": "75G"
+	},
+
+	"conv_ewas" :
+	{
+		"time": "5:00:00",
+		"output": "job-reports/{rule}-{wildcards.model}.out", 
+		"error": "job-reports/{rule}-{wildcards.model}.error"
+	},
+
+	"celldmc" :
+	{
+        "nodes": "1",
+		"ncpu": "2",
+		"ntask": "2",
+		"time": "6:00:00"
+	},
+
+	"tca" :
+	{
+        "partition": "cpu",
+        "nodes": "1",
+		"ncpu": "2",
+		"ntask": "2",
+		"time": "20:00:00"
+	},
+
+	"tca_comb" :
+	{
+		"mem": "32G"
+	},
+
+	"cp_covars" :
+	{
+		"mem": "100M", 
+		"time": "00:01:00"
+	},
+
+	"var_ewas" :
+	{
+		"time": "6:00:00",
+		"output": "job-reports/{rule}-{wildcards.mod}.out", 
+		"error": "job-reports/{rule}-{wildcards.mod}.error"
+	}
+}
