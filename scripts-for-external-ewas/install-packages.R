@@ -1,5 +1,5 @@
 pkgs <- list(cran=c("devtools", "tidyverse", "BiocManager", "matrixStats", "cowplot", 
-                    "cluster", "readxl", "SmartSVA", "TCA"),
+                    "cluster", "readxl", "SmartSVA", "TCA", "omicwas"),
              bioc=c("EpiDISH", "sva"),
              git=c("https://github.com/perishky/meffil", 
                    "https://github.com/perishky/ewaff", 
