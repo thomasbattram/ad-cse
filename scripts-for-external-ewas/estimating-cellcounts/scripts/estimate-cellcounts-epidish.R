@@ -10,40 +10,22 @@
 library(tidyverse)
 library(matrixStats) 
 library(EpiDISH)
+library(usefunc)
 
 ## args
 args <- commandArgs(trailingOnly = TRUE)
 dnam_mat_file <- args[1] # DNAm matrix file
 cc_outfile <- args[2] # cell count output filename
-useful_funcs_script <- args[3]
 
 ## manual args
 # dnam_mat_file <- "data/clean-meth.RData" # DNAm matrix file
 # cc_outfile <- "data/extended-blood-celltypes-epidish.tsv" # cell count output filename
-# useful_funcs_script <- "useful-functions.R"
-
-source(useful_funcs_script)
 
 ## data
 data(cent12CT.m)
 meth <- new_load(dnam_mat_file)
 
-#' Impute missing values in DNAm matrix
-#' 
-#' @param x DNAm matrix
-#' @param FUN function to apply to "x" to get values to impute missing values
-#' 
-#' @return imputed DNAm matrix
-impute_matrix <- function(x, FUN = function(x) rowMedians(x, na.rm = T)) {
-    idx <- which(is.na(x), arr.ind = T)
-    if (length(idx) > 0) {
-        v <- FUN(x)
-        v[which(is.na(v))] <- FUN(matrix(v, nrow = 1))
-        x[idx] <- v[idx[, "row"]]
-    }
-    return(x)
-}
-
+## Estimate cell counts
 meth <- impute_matrix(meth)
 out.l <- epidish(beta.m = meth, ref.m = cent12CT.m, method = "RPC")
 epi_rpc <- as_tibble(out.l$estF, rownames = "IID") %>%
