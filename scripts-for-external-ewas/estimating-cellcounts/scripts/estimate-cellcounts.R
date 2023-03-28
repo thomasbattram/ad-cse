@@ -28,7 +28,8 @@ write.csv(samplesheet, file = samp_outfile, quote = TRUE, row.names = FALSE)
 
 ## Checking the correct reference is stored in meffil
 if (!"blood gse167998" %in% meffil.list.cell.type.references()) {
-	stop("The 12 blood cell type reference is not in the version of meffil you are using, please update it.")
+	stop("The required reference is not in the version of meffil you are using, please update it using:\n", 
+		 "devtools::install_github('perishky/meffil')")
 }
 
 qc.objects <- meffil.qc(samplesheet, cell.type.reference="blood gse167998", verbose=TRUE)

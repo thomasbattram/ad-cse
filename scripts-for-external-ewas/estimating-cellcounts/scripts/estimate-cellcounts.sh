@@ -17,6 +17,6 @@ mkdir -p "data"
 samp="data/samplesheet.csv"
 qc="data/qc.objects.Robj"
 cc="data/extended-blood-celltypes-epic-idats.tsv"
-idats="" # UPDATE ME
+idats="" # FILL THIS IN
 
 Rscript ${scriptdir}/extract-cellcounts.R ${samp} ${qc} ${cc} ${idats}

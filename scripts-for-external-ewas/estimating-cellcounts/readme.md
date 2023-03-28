@@ -18,8 +18,4 @@ mkdir results
 * [estimate-cellcounts-epidish.R](scripts/estimate-cellcounts-epidish.R) estimates cell counts using the recommended EpiDISH procedure
 * [compare-cellcounts.R](compare-cellcounts.R) Generates plots to compare the cell counts estimated using meffil and using EpiDISH
 
-To run [estimate-cellcounts.sh](scripts/extract-cellcounts.sh), first you need to edit the script on BC4 and add in the paths missing. Then run the code below:
-
-``` bash
-sbatch estimate-cellcounts.sh
-```
+To run [estimate-cellcounts.sh](scripts/extract-cellcounts.sh), first you need to edit the script so it works with your high performance computing environment and add in the paths missing. Then submit the script as a job.
