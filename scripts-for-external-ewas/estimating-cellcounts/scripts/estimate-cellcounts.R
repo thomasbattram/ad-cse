@@ -7,7 +7,6 @@
 ## NOTE: Code comes from: https://github.com/perishky/meffil/blob/master/data-raw/idoloptimized-references.r
 
 ## pkgs
-library(tidyverse)
 library(meffil)
 
 ## args
