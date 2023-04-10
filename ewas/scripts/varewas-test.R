@@ -14,7 +14,8 @@ vartest(y, x = as.factor(x), type = 2) # Brown-Forsythe test --- THIS ONE
 jlsp(y, x = as.factor(x), var.type = 1) # Breusch-Pagan variance test
 jlsp(y, x = as.factor(x), var.type = 2) # Brown-Forsythe variance test
 
-## 
+# Joint location-and-scale score test   
+jlssc(y, x = as.factor(x), type = 2)
 
 all_dat <- data.frame(id = 1:1000, 
 					  ad = x, 
@@ -22,7 +23,7 @@ all_dat <- data.frame(id = 1:1000,
 					  covarA = rnorm(1000), 
 					  covarB = rnorm(1000))
 
-vartest(all_dat$y, x = as.factor(all_dat$x), type = 2)
+vartest(all_dat$y, x = as.factor(all_dat$ad), type = 2)
 
 res <- vartest(y = all_dat$y, 
 			   x = as.factor(all_dat$ad), 
@@ -44,3 +45,10 @@ tidy_var_res <- function(var_res)
 }
 
 tidy_var_res(res)
+
+jlssc(all_dat$y, x = as.factor(all_dat$ad), type = 2)
+
+jlssc(y = all_dat$y, 
+	  x = as.factor(all_dat$ad), 
+	  covar = all_dat[, -c(1,2,3)], 
+	  type = 2)
