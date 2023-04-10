@@ -273,7 +273,7 @@ rule jlssc_ewas:
                                         '{output}' """   
 
 ## Summarise variance EWAS results
-rule summ_var_res:
+rule summ_jlssc_res:
     input:
         script = LOCAL_DIR + "/" + "scripts/summarise-varewas-results.R",
         res = expand(SCR_DIR + "/" + "results/ewas/jlssc-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
@@ -289,7 +289,7 @@ rule summ_var_res:
                                         '{output.summ}' """
 
 ## Generate report                                        
-rule varewas_report:
+rule summ_jlssc_report:
     input:
         plots = SCR_DIR + "/" + "results/jlssc-ewas-man-qq.png",
         summ = SCR_DIR + "/" + "results/jlssc-ewas-summary-of-results.RData",
