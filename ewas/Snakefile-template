@@ -275,7 +275,7 @@ rule jlssc_ewas:
 ## Summarise variance EWAS results
 rule summ_jlssc_res:
     input:
-        script = LOCAL_DIR + "/" + "scripts/summarise-varewas-results.R",
+        script = LOCAL_DIR + "/" + "scripts/summarise-jlssc-results.R",
         res = expand(SCR_DIR + "/" + "results/ewas/jlssc-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
         cse_summ = SCR_DIR + "/" + "results/summary-of-results.RData",
     output:
