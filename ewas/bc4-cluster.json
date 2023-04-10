@@ -83,5 +83,23 @@
 	"varewas_report" :
 	{
 		"mem": "16G"
+	},
+
+	"jlssc_ewas" :
+	{
+		"time": "6:00:00",
+		"output": "job-reports/{rule}-{wildcards.mod}.out", 
+		"error": "job-reports/{rule}-{wildcards.mod}.error"
+	}, 
+
+	"summ_jlssc_res" :
+	{
+		"mem": "16G"
+	},
+
+	"jlssc_report" :
+	{
+		"mem": "16G"
 	}
+
 }
