@@ -19,7 +19,8 @@ rule all:
         SCR_DIR + "/" + "results/ewas/tca-res.RData",
         expand(SCR_DIR + "/" + "results/ewas/varewas-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
         LOCAL_DIR + "/" + "report/cs-ewas-report.html", 
-        LOCAL_DIR + "/" + "report/var-ewas-report.html"
+        LOCAL_DIR + "/" + "report/var-ewas-report.html", 
+        LOCAL_DIR + "/" + "report/jlssc-ewas-report.html"
 
 ## Generate SVs that can be used as covariates in the EWAS
 rule gen_svs:
@@ -252,3 +253,53 @@ rule varewas_report:
                                                output_format='all', 
                                                params = list(plots = '{input.plots}', 
                                                              summ = '{input.summ}'))\" """
+
+## Run JLSsc EWAS
+rule jlssc_ewas:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/jlssc-ewas.R", 
+        phen = SCR_DIR + "/" + "../data-extraction-and-qc/data/ad-data-cleaned.tsv",
+        meth = SCR_DIR + "/" + "../data-extraction-and-qc/data/clean-meth.RData",
+        svs = SCR_DIR + "/" + "data/svs/ad-svs.tsv",
+        covars = SCR_DIR + "/" + "../data-extraction-and-qc/data/covars-{mod}.txt",
+    output: 
+        SCR_DIR + "/" + "results/ewas/jlssc-res-{mod}.tsv"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.phen}' \
+                                        '{input.meth}' \
+                                        '{input.svs}' \
+                                        '{input.covars}' \
+                                        '{output}' """   
+
+## Summarise variance EWAS results
+rule summ_var_res:
+    input:
+        script = LOCAL_DIR + "/" + "scripts/summarise-varewas-results.R",
+        res = expand(SCR_DIR + "/" + "results/ewas/jlssc-res-{mod}.tsv", mod = ["cc", "no-cc", "no-covs"]),
+        cse_summ = SCR_DIR + "/" + "results/summary-of-results.RData",
+    output:
+        plots = SCR_DIR + "/" + "results/jlssc-ewas-man-qq.png",
+        summ = SCR_DIR + "/" + "results/jlssc-ewas-summary-of-results.RData"
+    shell:
+        """echo $HOSTNAME; Rscript {input.script} \
+                                        '{input.res}' \
+                                        '{input.cse_summ}' \
+                                        '{output.plots}' \
+                                        '{output.summ}' """
+
+## Generate report                                        
+rule varewas_report:
+    input:
+        plots = SCR_DIR + "/" + "results/jlssc-ewas-man-qq.png",
+        summ = SCR_DIR + "/" + "results/jlssc-ewas-summary-of-results.RData",
+        report = LOCAL_DIR + "/" + "report/jlssc-ewas-report.Rmd"
+    output:
+        LOCAL_DIR + "/" + "report/jlssc-ewas-report.html"
+    shell:
+        """echo $HOSTNAME; \
+                Rscript -e \"rmarkdown::render('{input.report}',
+                                               output_format='all', 
+                                               params = list(plots = '{input.plots}', 
+                                                             summ = '{input.summ}'))\" """
+
